@@ -13,3 +13,4 @@
 - Use a single grade provider and pure grade-to-stage resolver for stage themes; no student profile integration exists, so grade selection is session-only React state until real profile data is supplied.
 - Scope all stage colors through semantic CSS tokens and reusable components to keep every stage consistent without duplicating pages.
 - Do not add invented educational content or backend systems during a visual redesign; integrate actual platform data only when supplied.
+- Reuse StudentWorkspace and catalogue views across student routes; backend-dependent lists and metrics stay empty until real data is connected manually.
