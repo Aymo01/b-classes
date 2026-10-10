@@ -9,7 +9,7 @@ export const generateStudyGuidance = createServerFn({ method: 'POST' })
     return { topic, grade: data?.grade ? String(data.grade).slice(0, 60) : null };
   })
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
+    const key = process.env['LOVABLE_API_KEY'];
     if (!key) return { ok: false as const, error: 'خدمة الإرشاد غير مهيأة حاليًا.' };
 
     const res = await fetch('https://ai.gateway.lovable.dev/v1/responses', {
