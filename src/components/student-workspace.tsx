@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
-import { Lightbulb, ArrowLeft, BookOpen, CalendarDays, Check, ClipboardList, FileQuestion, GraduationCap, LayoutGrid, Play, Search, Sparkles, Target, Trophy, UserRound, Video, Waves } from 'lucide-react';
+import { Lightbulb, ArrowLeft, BookOpen, CalendarDays, Check, ClipboardList, FileQuestion, GraduationCap, LayoutGrid, Play, Search, Target, Trophy, UserRound, Video, Waves } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useGrade } from '@/components/grade-provider';
@@ -20,7 +20,7 @@ export const studentNavigation = [
 
 export function StudentWorkspace({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   const { grade } = useGrade();
-  return <div className="student-layout page-width"><aside className="student-sidebar"><div className="student-identity"><span className="student-avatar"><GraduationCap /></span><div><strong>مساحتك الدراسية</strong><span>{grade ? gradeLabel(grade) : 'لم يُحدد الصف بعد'}</span></div></div><nav aria-label="مساحة الطالب">{studentNavigation.map(({ to, title, icon: Icon }) => <Button key={to} variant="ghost" asChild><Link to={to} activeProps={{ className: 'student-nav-active' }}><Icon />{title}</Link></Button>)}</nav><Button variant="outline" asChild><Link to="/grades" search={{ stage: undefined }}>تغيير الصف<ArrowLeft /></Link></Button></aside><div className="student-content"><header className="workspace-heading"><div className="min-w-0"><span className="section-kicker">B classes · {grade ? gradeLabel(grade) : 'رحلتك الدراسية'}</span><h1>{title}</h1><p>{subtitle}</p></div><span className="workspace-emblem" aria-hidden="true"><Sparkles /></span></header>{!grade && <div className="grade-prompt"><GraduationCap /><p>اختر صفك لتحديد مرحلتك الدراسية.</p><Button variant="outline" asChild><Link to="/grades" search={{ stage: undefined }}>اختر صفك</Link></Button></div>}{children}</div></div>;
+  return <div className="student-layout page-width"><aside className="student-sidebar"><div className="student-identity"><span className="student-avatar"><GraduationCap /></span><div><strong>مساحتك الدراسية</strong><span>{grade ? gradeLabel(grade) : 'لم يُحدد الصف بعد'}</span></div></div><nav aria-label="مساحة الطالب">{studentNavigation.map(({ to, title, icon: Icon }) => <Button key={to} variant="ghost" asChild><Link to={to} activeProps={{ className: 'student-nav-active' }}><Icon />{title}</Link></Button>)}</nav><Button variant="outline" asChild><Link to="/grades" search={{ stage: undefined }}>تغيير الصف<ArrowLeft /></Link></Button></aside><div className="student-content"><header className="workspace-heading"><div className="min-w-0"><span className="section-kicker">B classes · {grade ? gradeLabel(grade) : 'رحلتك الدراسية'}</span><h1>{title}</h1><p>{subtitle}</p></div></header>{!grade && <div className="grade-prompt"><GraduationCap /><p>اختر صفك لتحديد مرحلتك الدراسية.</p><Button variant="outline" asChild><Link to="/grades" search={{ stage: undefined }}>اختر صفك</Link></Button></div>}{children}</div></div>;
 }
 
 export function EmptyState({ icon: Icon = BookOpen, title, text }: { icon?: typeof BookOpen; title: string; text: string }) {
