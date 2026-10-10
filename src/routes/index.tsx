@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from '@tanstack/react-router';
-import { ArrowLeft, ArrowUpLeft, BookOpen, Check, Compass, HeartHandshake, Sparkles, Target } from 'lucide-react';
+import { ArrowLeft, ArrowUpLeft, BookOpen, Check, Compass, HeartHandshake, Lightbulb, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StageCard } from '@/components/stage-card';
 import { stages } from '@/lib/grades';
@@ -30,10 +30,10 @@ function Index() {
         <div className="hero-actions"><Button asChild size="lg"><Link to="/grades" search={{ stage: undefined }}>ابدأ رحلتك الآن<ArrowLeft /></Link></Button><Button variant="link" asChild><Link to="/grades" search={{ stage: undefined }}>اكتشف المراحل<ArrowUpLeft /></Link></Button></div>
         <div className="hero-notes"><span><Check />تجربة تناسب عمرك</span><span><Check />تعلّم باللغة العربية</span></div>
       </div></div>
-      <div className="photo-caption"><span className="caption-icon"><BookOpen /></span><div><strong>كل خطوة تصنع فرقًا</strong><span>فضول صغير، مستقبل كبير</span></div><Sparkles size={20} /></div>
+      <div className="photo-caption"><span className="caption-icon"><BookOpen /></span><div><strong>كل خطوة تصنع فرقًا</strong><span>فضول صغير، مستقبل كبير</span></div></div>
     </section>
     <div className="values-strip"><div className="values-inner"><span><Compass />رحلة تناسب كل مرحلة</span><span><BookOpen />المعرفة أقرب إليك</span><span><Target />خطوة بخطوة نحو هدفك</span><span><HeartHandshake />لأن لكل طالب طريقه</span></div></div>
     <section className="stages-section page-width"><div className="section-heading"><div><span className="section-kicker">مراحل مختلفة. شغف واحد.</span><h2>أين تبدأ رحلتك؟</h2><p>لكل عمر طريقته في التعلّم. اكتشف المساحة التي تناسبك.</p></div><span className="section-note"><span>٣</span> مراحل، عالم من الفرص <ArrowUpLeft size={19} /></span></div><div className="stages-grid">{stages.map((stage, index) => <StageCard key={stage.id} stage={stage} index={index} />)}</div></section>
-    <section className="learning-section"><div className="page-width learning-inner"><div><span className="section-kicker">معك في كل خطوة</span><h2>التعلّم رحلة،<br />وليست مجرد وجهة.</h2><p>نؤمن أن البداية المناسبة تفتح أبوابًا جديدة للمعرفة،<br />وتمنح كل طالب مساحة ليكتشف قدراته.</p><Button variant="outline" asChild><Link to="/grades" search={{ stage: undefined }}>اختر بدايتك<ArrowLeft /></Link></Button></div><div className="learning-values"><div><span className="value-icon"><Compass /></span><h3>طريق يناسبك</h3><p>مرحلتك واهتماماتك في قلب رحلة التعلّم.</p></div><div><span className="value-icon"><Target /></span><h3>خطوات نحو طموحك</h3><p>بداية واضحة، ومساحة للنمو يومًا بعد يوم.</p></div><div><span className="value-icon"><Sparkles /></span><h3>شغف لا يتوقف</h3><p>كل سؤال فرصة لاكتشاف شيء جديد.</p></div></div></div></section>
+    <section className="learning-section"><div className="page-width learning-inner"><div><span className="section-kicker">معك في كل خطوة</span><h2>التعلّم رحلة،<br />وليست مجرد وجهة.</h2><p>نؤمن أن البداية المناسبة تفتح أبوابًا جديدة للمعرفة،<br />وتمنح كل طالب مساحة ليكتشف قدراته.</p><Button variant="outline" asChild><Link to="/grades" search={{ stage: undefined }}>اختر بدايتك<ArrowLeft /></Link></Button></div><div className="learning-values"><div><span className="value-icon"><Compass /></span><h3>طريق يناسبك</h3><p>مرحلتك واهتماماتك في قلب رحلة التعلّم.</p></div><div><span className="value-icon"><Target /></span><h3>خطوات نحو طموحك</h3><p>بداية واضحة، ومساحة للنمو يومًا بعد يوم.</p></div><div><span className="value-icon"><Lightbulb /></span><h3>شغف لا يتوقف</h3><p>كل سؤال فرصة لاكتشاف شيء جديد.</p></div></div></div></section>
   </>;
 }
