@@ -22,13 +22,13 @@ export const getMyProfile = createServerFn({ method: 'GET' })
     return {
       profile: profile
         ? {
-            id: profile.id,
-            displayName: profile.display_name,
-            grade: profile.grade,
-            inviteCode: profile.invite_code,
+            id: profile['id'],
+            displayName: profile['display_name'],
+            grade: profile['grade'],
+            inviteCode: profile['invite_code'],
           }
         : null,
-      roles: (roles ?? []).map((row) => row.role),
+      roles: (roles ?? []).map((row) => row['role']),
     };
   });
 
@@ -38,7 +38,9 @@ export const updateMyProfile = createServerFn({ method: 'POST' })
     (input: { displayName?: string | null; grade?: number | null }) => input,
   )
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const patch: { display_name?: string | null; grade?: number | null; updated_at: string } = {
+      updated_at: new Date().toISOString(),
+    };
     if (data.displayName !== undefined) patch.display_name = data.displayName;
     if (data.grade !== undefined) patch.grade = data.grade;
     const { error } = await context.supabase

@@ -316,13 +316,17 @@ export const getQuizResult = createServerFn({ method: 'GET' })
   .handler(async ({ data, context }) => {
     const { data: review, error } = await context.supabase.rpc('get_quiz_review', { _quiz_id: data.quizId });
     if (error || !review) throw new Error('لم تجد محاولة لهذا الاختبار بعد.');
-    const attempt = review.attempt as { score: number; total_points: number; submitted_at: string; answers: Record<string, number> };
+    const parsed = review as unknown as {
+      attempt: { score: number; total_points: number; submitted_at: string; answers: Record<string, number> | null };
+      questions: { id: string; question_text: string; options: string[]; correct_index: number; points: number }[];
+    };
+    const attempt = parsed.attempt;
     return {
       score: Number(attempt.score),
       total: Number(attempt.total_points),
       submittedAt: attempt.submitted_at,
       answers: attempt.answers ?? {},
-      questions: (review.questions as { id: string; question_text: string; options: string[]; correct_index: number; points: number }[]).map(
+      questions: parsed.questions.map(
         (q) => ({
           id: q.id,
           questionText: q.question_text,
