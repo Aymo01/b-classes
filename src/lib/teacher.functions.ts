@@ -1,10 +1,9 @@
 import { createServerFn } from '@tanstack/react-start';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/integrations/supabase/types';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 
-async function assertEditor(
-  supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }> },
-  userId: string,
-) {
+async function assertEditor(supabase: SupabaseClient<Database>, userId: string) {
   const teacher = await supabase.rpc('has_role', { _user_id: userId, _role: 'teacher' });
   const admin = await supabase.rpc('has_role', { _user_id: userId, _role: 'admin' });
   if (!teacher.data && !admin.data) throw new Error('هذه الصلاحية متاحة للمعلمين فقط.');
