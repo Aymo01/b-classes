@@ -465,6 +465,7 @@ export type Database = {
           question_text: string
         }[]
       }
+      get_quiz_review: { Args: { _quiz_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -473,6 +474,7 @@ export type Database = {
         Returns: boolean
       }
       link_parent_by_code: { Args: { _code: string }; Returns: string }
+      submit_quiz: { Args: { _answers: Json; _quiz_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "student" | "teacher" | "admin" | "parent"

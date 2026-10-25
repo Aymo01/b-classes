@@ -22,6 +22,13 @@
       "when": 1792961799855,
       "tag": "0002_storage_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792961856817,
+      "tag": "0003_quiz_functions",
+      "breakpoints": true
     }
   ]
 }
