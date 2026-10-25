@@ -8,6 +8,13 @@
       "when": 1792961769769,
       "tag": "0000_core_auth_profiles_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792961786670,
+      "tag": "0001_education_content",
+      "breakpoints": true
     }
   ]
 }
