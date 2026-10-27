@@ -50,6 +50,13 @@
       "when": 1793125898565,
       "tag": "0006_fix_admin_list_teachers",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793125981936,
+      "tag": "0007_parent_link_grants_role",
+      "breakpoints": true
     }
   ]
 }
