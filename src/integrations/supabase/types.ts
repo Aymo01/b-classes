@@ -432,6 +432,24 @@ export type Database = {
           },
         ]
       }
+      teacher_allowlist: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          email: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          email: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          email?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -455,6 +473,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_add_teacher: { Args: { _email: string }; Returns: boolean }
+      admin_list_teachers: {
+        Args: never
+        Returns: {
+          added_at: string
+          email: string
+          has_account: boolean
+        }[]
+      }
+      admin_remove_teacher: { Args: { _email: string }; Returns: undefined }
       get_quiz_questions: {
         Args: { _quiz_id: string }
         Returns: {
