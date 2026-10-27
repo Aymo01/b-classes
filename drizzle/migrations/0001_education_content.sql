@@ -1,0 +1,237 @@
+-- The content of this migration cannot be applied: its schema already exists in the database (applied before the remix reset the migration journal).
+-- Switched off so new migrations can apply.
+-- create table public.subjects (
+--   id uuid primary key default gen_random_uuid(),
+--   title text not null,
+--   description text,
+--   grade int not null check (grade between 1 and 12),
+--   created_by uuid not null,
+--   created_at timestamptz not null default now()
+-- );
+-- 
+-- create table public.lessons (
+--   id uuid primary key default gen_random_uuid(),
+--   subject_id uuid not null references public.subjects(id) on delete cascade,
+--   title text not null,
+--   description text,
+--   video_url text,
+--   notes text,
+--   order_index int not null default 0,
+--   created_by uuid not null,
+--   created_at timestamptz not null default now()
+-- );
+-- 
+-- create table public.classes (
+--   id uuid primary key default gen_random_uuid(),
+--   subject_id uuid not null references public.subjects(id) on delete cascade,
+--   title text not null,
+--   description text,
+--   scheduled_at timestamptz not null,
+--   duration_minutes int not null default 45,
+--   meeting_url text,
+--   created_by uuid not null,
+--   created_at timestamptz not null default now()
+-- );
+-- 
+-- create table public.assignments (
+--   id uuid primary key default gen_random_uuid(),
+--   subject_id uuid not null references public.subjects(id) on delete cascade,
+--   title text not null,
+--   instructions text,
+--   due_at timestamptz,
+--   created_by uuid not null,
+--   created_at timestamptz not null default now()
+-- );
+-- 
+-- create table public.submissions (
+--   id uuid primary key default gen_random_uuid(),
+--   assignment_id uuid not null references public.assignments(id) on delete cascade,
+--   student_id uuid not null,
+--   content text,
+--   file_path text,
+--   submitted_at timestamptz not null default now(),
+--   status text not null default 'submitted' check (status in ('submitted', 'reviewed')),
+--   feedback text,
+--   score numeric,
+--   reviewed_at timestamptz
+-- );
+-- 
+-- create table public.quizzes (
+--   id uuid primary key default gen_random_uuid(),
+--   subject_id uuid not null references public.subjects(id) on delete cascade,
+--   title text not null,
+--   description text,
+--   due_at timestamptz,
+--   created_by uuid not null,
+--   created_at timestamptz not null default now()
+-- );
+-- 
+-- create table public.quiz_questions (
+--   id uuid primary key default gen_random_uuid(),
+--   quiz_id uuid not null references public.quizzes(id) on delete cascade,
+--   question_text text not null,
+--   options jsonb not null,
+--   correct_index int not null,
+--   points int not null default 1,
+--   order_index int not null default 0
+-- );
+-- 
+-- create table public.quiz_attempts (
+--   id uuid primary key default gen_random_uuid(),
+--   quiz_id uuid not null references public.quizzes(id) on delete cascade,
+--   student_id uuid not null,
+--   answers jsonb not null,
+--   score numeric not null,
+--   total_points numeric not null,
+--   submitted_at timestamptz not null default now()
+-- );
+-- 
+-- create table public.lesson_completions (
+--   lesson_id uuid not null references public.lessons(id) on delete cascade,
+--   student_id uuid not null,
+--   completed_at timestamptz not null default now(),
+--   primary key (lesson_id, student_id)
+-- );
+-- 
+-- create table public.notifications (
+--   id uuid primary key default gen_random_uuid(),
+--   user_id uuid not null,
+--   kind text not null,
+--   title text not null,
+--   body text,
+--   read_at timestamptz,
+--   created_at timestamptz not null default now()
+-- );
+-- 
+-- -- Students read content for any grade (app scopes queries by the student's grade);
+-- -- only teachers and admins modify content.
+-- grant select on public.subjects, public.lessons, public.classes, public.assignments, public.quizzes to authenticated;
+-- grant insert, update, delete on public.subjects, public.lessons, public.classes, public.assignments, public.quizzes to authenticated;
+-- grant select, insert on public.submissions to authenticated;
+-- grant update on public.submissions to authenticated;
+-- grant select, insert, delete on public.lesson_completions to authenticated;
+-- grant select, insert on public.quiz_attempts to authenticated;
+-- grant select, update on public.notifications to authenticated;
+-- grant all on public.quiz_questions to service_role;
+-- grant all on public.subjects, public.lessons, public.classes, public.assignments, public.submissions, public.quizzes, public.quiz_questions, public.quiz_attempts, public.lesson_completions, public.notifications to service_role;
+-- 
+-- alter table public.subjects enable row level security;
+-- alter table public.lessons enable row level security;
+-- alter table public.classes enable row level security;
+-- alter table public.assignments enable row level security;
+-- alter table public.submissions enable row level security;
+-- alter table public.quizzes enable row level security;
+-- alter table public.quiz_questions enable row level security;
+-- alter table public.quiz_attempts enable row level security;
+-- alter table public.lesson_completions enable row level security;
+-- alter table public.notifications enable row level security;
+-- 
+-- create policy "students read subjects" on public.subjects for select to authenticated using (true);
+-- create policy "teachers manage subjects" on public.subjects for insert to authenticated with check (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin'));
+-- create policy "teachers update subjects" on public.subjects for update to authenticated using (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin'));
+-- create policy "teachers delete subjects" on public.subjects for delete to authenticated using (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin'));
+-- 
+-- create policy "students read lessons" on public.lessons for select to authenticated using (true);
+-- create policy "teachers manage lessons" on public.lessons for all to authenticated using (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin')) with check (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin'));
+-- 
+-- create policy "students read classes" on public.classes for select to authenticated using (true);
+-- create policy "teachers manage classes" on public.classes for all to authenticated using (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin')) with check (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin'));
+-- 
+-- create policy "students read assignments" on public.assignments for select to authenticated using (true);
+-- create policy "teachers manage assignments" on public.assignments for all to authenticated using (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin')) with check (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin'));
+-- 
+-- create policy "students read own submissions" on public.submissions for select to authenticated using (student_id = auth.uid() or public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin'));
+-- create policy "students submit own work" on public.submissions for insert to authenticated with check (student_id = auth.uid());
+-- create policy "students update own submissions" on public.submissions for update to authenticated using (student_id = auth.uid()) with check (student_id = auth.uid());
+-- create policy "teachers review submissions" on public.submissions for update to authenticated using (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin'));
+-- 
+-- create policy "students read quizzes" on public.quizzes for select to authenticated using (true);
+-- create policy "teachers manage quizzes" on public.quizzes for all to authenticated using (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin')) with check (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin'));
+-- 
+-- create policy "teachers read questions" on public.quiz_questions for select to authenticated using (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin'));
+-- create policy "teachers manage questions" on public.quiz_questions for all to authenticated using (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin')) with check (public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin'));
+-- 
+-- create policy "students read own attempts" on public.quiz_attempts for select to authenticated using (student_id = auth.uid() or public.has_role(auth.uid(), 'teacher') or public.has_role(auth.uid(), 'admin'));
+-- create policy "students submit own attempts" on public.quiz_attempts for insert to authenticated with check (student_id = auth.uid());
+-- 
+-- create policy "students read own completions" on public.lesson_completions for select to authenticated using (student_id = auth.uid());
+-- create policy "students mark own completions" on public.lesson_completions for all to authenticated using (student_id = auth.uid()) with check (student_id = auth.uid());
+-- 
+-- create policy "users read own notifications" on public.notifications for select to authenticated using (user_id = auth.uid());
+-- create policy "users update own notifications" on public.notifications for update to authenticated using (user_id = auth.uid());
+-- 
+-- -- Questions API for students: hides correct answers.
+-- create or replace function public.get_quiz_questions(_quiz_id uuid)
+-- returns table (id uuid, question_text text, options jsonb, points int, order_index int)
+-- language sql
+-- stable
+-- security definer
+-- set search_path = public
+-- as $$
+--   select q.id, q.question_text, q.options, q.points, q.order_index
+--   from public.quiz_questions q
+--   where q.quiz_id = _quiz_id
+--   order by q.order_index;
+-- $$;
+-- 
+-- grant execute on function public.get_quiz_questions(uuid) to authenticated;
+-- 
+-- -- Parent links a student account using the student's invite code.
+-- create or replace function public.link_parent_by_code(_code text)
+-- returns uuid
+-- language plpgsql
+-- security definer
+-- set search_path = public
+-- as $$
+-- declare
+--   student uuid;
+-- begin
+--   if not public.has_role(auth.uid(), 'parent') then
+--     raise exception 'parent role required';
+--   end if;
+--   select id into student from public.profiles where invite_code = lower(trim(_code));
+--   if student is null then
+--     raise exception 'code not found';
+--   end if;
+--   insert into public.parent_links (parent_id, student_id) values (auth.uid(), student)
+--   on conflict (parent_id, student_id) do nothing;
+--   return student;
+-- end;
+-- $$;
+-- 
+-- grant execute on function public.link_parent_by_code(text) to authenticated;
+-- 
+-- -- Notifications for new content.
+-- create or replace function public.notify_grade_students()
+-- returns trigger
+-- language plpgsql
+-- security definer
+-- set search_path = public
+-- as $$
+-- declare
+--   g int;
+--   t text;
+--   k text;
+--   body text;
+-- begin
+--   select s.grade into g from public.subjects s where s.id = new.subject_id;
+--   if tg_table_name = 'lessons' then k := 'lesson'; t := 'درس جديد'; body := new.title; end if;
+--   if tg_table_name = 'assignments' then k := 'assignment'; t := 'واجب جديد'; body := new.title; end if;
+--   if tg_table_name = 'quizzes' then k := 'quiz'; t := 'اختبار جديد'; body := new.title; end if;
+--   if tg_table_name = 'classes' then k := 'class'; t := 'حصة جديدة'; body := new.title; end if;
+--   if g is not null then
+--     insert into public.notifications (user_id, kind, title, body)
+--     select p.id, k, t, body from public.profiles p where p.grade = g;
+--   end if;
+--   return new;
+-- end;
+-- $$;
+-- 
+-- create trigger notify_lesson_inserted after insert on public.lessons
+-- for each row execute function public.notify_grade_students();
+-- create trigger notify_assignment_inserted after insert on public.assignments
+-- for each row execute function public.notify_grade_students();
+-- create trigger notify_quiz_inserted after insert on public.quizzes
+-- for each row execute function public.notify_grade_students();
+-- create trigger notify_class_inserted after insert on public.classes
+-- for each row execute function public.notify_grade_students();

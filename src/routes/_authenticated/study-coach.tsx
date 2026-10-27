@@ -8,7 +8,7 @@ import { gradeLabel } from '@/lib/grades';
 import { pageMeta } from '@/lib/page-meta';
 import { generateStudyGuidance } from '@/lib/study-coach.functions';
 
-export const Route = createFileRoute('/study-coach')({
+export const Route = createFileRoute('/_authenticated/study-coach')({
   head: () => pageMeta('مرشدي الدراسي', 'صف موضوع درسك أو تحديك الدراسي واحصل على خطة عملية مخصصة في B classes.'),
   component: StudyCoach,
 });
