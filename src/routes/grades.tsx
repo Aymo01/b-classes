@@ -21,6 +21,7 @@ export const Route = createFileRoute('/grades')({
 function GradesPage() {
   const { stage: requestedStage } = Route.useSearch();
   const { grade, selectGrade } = useGrade();
+  const { user } = useSession();
   const [confirmed, setConfirmed] = useState(false);
   const selectedStage = themeForGrade(grade);
   return <div className="grade-page page-width"><Button variant="link" asChild><Link to="/"><ArrowRight />العودة للرئيسية</Link></Button><div className="grade-heading"><span className="section-kicker">خطوتك الأولى</span><h1>كل رحلة تبدأ باختيار.</h1><p>ما صفك الدراسي؟ اختر صفك لنبدأ من المكان المناسب لك.</p></div>
