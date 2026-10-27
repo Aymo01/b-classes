@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CtrlB7q4x9RouteImport } from './routes/ctrl-b7q4x9'
 import { Route as GradesRouteImport } from './routes/grades'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -60,6 +61,11 @@ const AuthRoute = AuthRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CtrlB7q4x9Route = CtrlB7q4x9RouteImport.update({
+  id: '/ctrl-b7q4x9',
+  path: '/ctrl-b7q4x9',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GradesRoute = GradesRouteImport.update({
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/ctrl-b7q4x9': typeof CtrlB7q4x9Route
   '/grades': typeof GradesRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/ctrl-b7q4x9': typeof CtrlB7q4x9Route
   '/grades': typeof GradesRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -249,6 +257,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/ctrl-b7q4x9': typeof CtrlB7q4x9Route
   '/grades': typeof GradesRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -280,6 +289,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/ctrl-b7q4x9'
     | '/grades'
     | '/privacy'
     | '/reset-password'
@@ -309,6 +319,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/ctrl-b7q4x9'
     | '/grades'
     | '/privacy'
     | '/reset-password'
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/ctrl-b7q4x9'
     | '/grades'
     | '/privacy'
     | '/reset-password'
@@ -367,6 +379,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
+  CtrlB7q4x9Route: typeof CtrlB7q4x9Route
   GradesRoute: typeof GradesRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -408,6 +421,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ctrl-b7q4x9': {
+      id: '/ctrl-b7q4x9'
+      path: '/ctrl-b7q4x9'
+      fullPath: '/ctrl-b7q4x9'
+      preLoaderRoute: typeof CtrlB7q4x9RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/grades': {
@@ -671,6 +691,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
+  CtrlB7q4x9Route: CtrlB7q4x9Route,
   GradesRoute: GradesRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,

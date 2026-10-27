@@ -59,7 +59,7 @@ export function AccountMenu({ email }: { email: string }) {
           <DropdownMenuItem asChild><Link to="/profile"><UserRound />ملفي الشخصي</Link></DropdownMenuItem>
           <DropdownMenuItem asChild><Link to="/notifications"><Bell />الإشعارات{unread > 0 && <span className="menu-badge">{unread}</span>}</Link></DropdownMenuItem>
           {isEditor && <DropdownMenuItem asChild><Link to="/teacher"><Wrench />منطقة المعلم</Link></DropdownMenuItem>}
-          {isParent && <DropdownMenuItem asChild><Link to="/parent"><Users />منطقة ولي الأمر</Link></DropdownMenuItem>}
+          <DropdownMenuItem asChild><Link to="/parent"><Users />{isParent ? 'منطقة ولي الأمر' : 'أنا ولي أمر'}</Link></DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => void handleSignOut()} className="account-signout"><LogOut />تسجيل الخروج</DropdownMenuItem>
         </DropdownMenuContent>
