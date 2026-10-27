@@ -30,9 +30,9 @@ function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  if (!loading && user) {
-    void navigate({ to: redirectTo ?? '/dashboard' });
-  }
+  useEffect(() => {
+    if (!loading && user) void navigate({ to: redirectTo ?? '/dashboard' });
+  }, [loading, user, navigate, redirectTo]);
 
   const destination = redirectTo ?? '/dashboard';
 

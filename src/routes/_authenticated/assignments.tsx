@@ -1,8 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { CatalogueDesign } from '@/components/student-workspace';
-import { pageMeta } from '@/lib/page-meta';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_authenticated/assignments')({
-  head: () => pageMeta('واجباتي', 'مساحة الواجبات الدراسية والتسليمات في B classes.'),
-  component: () => <CatalogueDesign kind="assignments" />,
+  component: () => <Outlet />,
 });
