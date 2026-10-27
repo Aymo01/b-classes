@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Check, CheckCircle2, GraduationCap, LockKeyhole 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useGrade } from '@/components/grade-provider';
+import { useSession } from '@/lib/session';
 import { gradeLabel, stages, themeForGrade, type Grade, type Stage } from '@/lib/grades';
 
 export const Route = createFileRoute('/grades')({
