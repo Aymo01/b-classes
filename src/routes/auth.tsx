@@ -52,7 +52,10 @@ function AuthPage() {
           password,
           options: { data: { display_name: name }, emailRedirectTo: window.location.origin },
         });
-        if (signUpError) throw new Error('تعذر إنشاء الحساب. ربما البريد مسجل مسبقًا.');
+        if (signUpError) {
+          if (signUpError.code === 'weak_password') throw new Error('كلمة المرور ضعيفة أو شائعة. اختر كلمة أقوى وأطول.');
+          throw new Error('تعذر إنشاء الحساب. ربما البريد مسجل مسبقًا.');
+        }
         if (!data.session) {
           setNotice('تم إنشاء حسابك. تحقق من بريدك الإلكتروني لتأكيد الحساب ثم سجّل دخولك.');
         } else {
