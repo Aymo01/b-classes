@@ -23,6 +23,10 @@ import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedQuizzesRouteImport } from './routes/_authenticated/quizzes'
 import { Route as AuthenticatedStudyCoachRouteImport } from './routes/_authenticated/study-coach'
 import { Route as AuthenticatedSubjectsRouteImport } from './routes/_authenticated/subjects'
+import { Route as AuthenticatedAssignmentsAssignmentIdRouteImport } from './routes/_authenticated/assignments.$assignmentId'
+import { Route as AuthenticatedLessonsLessonIdRouteImport } from './routes/_authenticated/lessons.$lessonId'
+import { Route as AuthenticatedQuizzesQuizIdRouteImport } from './routes/_authenticated/quizzes.$quizId'
+import { Route as AuthenticatedQuizzesQuizIdResultsRouteImport } from './routes/_authenticated/quizzes.$quizId.results'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -94,36 +98,68 @@ const AuthenticatedSubjectsRoute = AuthenticatedSubjectsRouteImport.update({
   path: '/subjects',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAssignmentsAssignmentIdRoute =
+  AuthenticatedAssignmentsAssignmentIdRouteImport.update({
+    id: '/$assignmentId',
+    path: '/$assignmentId',
+    getParentRoute: () => AuthenticatedAssignmentsRoute,
+  } as any)
+const AuthenticatedLessonsLessonIdRoute =
+  AuthenticatedLessonsLessonIdRouteImport.update({
+    id: '/$lessonId',
+    path: '/$lessonId',
+    getParentRoute: () => AuthenticatedLessonsRoute,
+  } as any)
+const AuthenticatedQuizzesQuizIdRoute =
+  AuthenticatedQuizzesQuizIdRouteImport.update({
+    id: '/$quizId',
+    path: '/$quizId',
+    getParentRoute: () => AuthenticatedQuizzesRoute,
+  } as any)
+const AuthenticatedQuizzesQuizIdResultsRoute =
+  AuthenticatedQuizzesQuizIdResultsRouteImport.update({
+    id: '/results',
+    path: '/results',
+    getParentRoute: () => AuthenticatedQuizzesQuizIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/grades': typeof GradesRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/assignments': typeof AuthenticatedAssignmentsRoute
+  '/assignments': typeof AuthenticatedAssignmentsRouteWithChildren
   '/classes': typeof AuthenticatedClassesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/lessons': typeof AuthenticatedLessonsRoute
+  '/lessons': typeof AuthenticatedLessonsRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
-  '/quizzes': typeof AuthenticatedQuizzesRoute
+  '/quizzes': typeof AuthenticatedQuizzesRouteWithChildren
   '/study-coach': typeof AuthenticatedStudyCoachRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
+  '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
+  '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
+  '/quizzes/$quizId': typeof AuthenticatedQuizzesQuizIdRouteWithChildren
+  '/quizzes/$quizId/results': typeof AuthenticatedQuizzesQuizIdResultsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/grades': typeof GradesRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/assignments': typeof AuthenticatedAssignmentsRoute
+  '/assignments': typeof AuthenticatedAssignmentsRouteWithChildren
   '/classes': typeof AuthenticatedClassesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/lessons': typeof AuthenticatedLessonsRoute
+  '/lessons': typeof AuthenticatedLessonsRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
-  '/quizzes': typeof AuthenticatedQuizzesRoute
+  '/quizzes': typeof AuthenticatedQuizzesRouteWithChildren
   '/study-coach': typeof AuthenticatedStudyCoachRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
+  '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
+  '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
+  '/quizzes/$quizId': typeof AuthenticatedQuizzesQuizIdRouteWithChildren
+  '/quizzes/$quizId/results': typeof AuthenticatedQuizzesQuizIdResultsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -132,15 +168,19 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/grades': typeof GradesRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/_authenticated/assignments': typeof AuthenticatedAssignmentsRoute
+  '/_authenticated/assignments': typeof AuthenticatedAssignmentsRouteWithChildren
   '/_authenticated/classes': typeof AuthenticatedClassesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/lessons': typeof AuthenticatedLessonsRoute
+  '/_authenticated/lessons': typeof AuthenticatedLessonsRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
-  '/_authenticated/quizzes': typeof AuthenticatedQuizzesRoute
+  '/_authenticated/quizzes': typeof AuthenticatedQuizzesRouteWithChildren
   '/_authenticated/study-coach': typeof AuthenticatedStudyCoachRoute
   '/_authenticated/subjects': typeof AuthenticatedSubjectsRoute
+  '/_authenticated/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
+  '/_authenticated/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
+  '/_authenticated/quizzes/$quizId': typeof AuthenticatedQuizzesQuizIdRouteWithChildren
+  '/_authenticated/quizzes/$quizId/results': typeof AuthenticatedQuizzesQuizIdResultsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -158,6 +198,10 @@ export interface FileRouteTypes {
     | '/quizzes'
     | '/study-coach'
     | '/subjects'
+    | '/assignments/$assignmentId'
+    | '/lessons/$lessonId'
+    | '/quizzes/$quizId'
+    | '/quizzes/$quizId/results'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -173,6 +217,10 @@ export interface FileRouteTypes {
     | '/quizzes'
     | '/study-coach'
     | '/subjects'
+    | '/assignments/$assignmentId'
+    | '/lessons/$lessonId'
+    | '/quizzes/$quizId'
+    | '/quizzes/$quizId/results'
   id:
     | '__root__'
     | '/'
@@ -189,6 +237,10 @@ export interface FileRouteTypes {
     | '/_authenticated/quizzes'
     | '/_authenticated/study-coach'
     | '/_authenticated/subjects'
+    | '/_authenticated/assignments/$assignmentId'
+    | '/_authenticated/lessons/$lessonId'
+    | '/_authenticated/quizzes/$quizId'
+    | '/_authenticated/quizzes/$quizId/results'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -299,29 +351,109 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSubjectsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/assignments/$assignmentId': {
+      id: '/_authenticated/assignments/$assignmentId'
+      path: '/$assignmentId'
+      fullPath: '/assignments/$assignmentId'
+      preLoaderRoute: typeof AuthenticatedAssignmentsAssignmentIdRouteImport
+      parentRoute: typeof AuthenticatedAssignmentsRoute
+    }
+    '/_authenticated/lessons/$lessonId': {
+      id: '/_authenticated/lessons/$lessonId'
+      path: '/$lessonId'
+      fullPath: '/lessons/$lessonId'
+      preLoaderRoute: typeof AuthenticatedLessonsLessonIdRouteImport
+      parentRoute: typeof AuthenticatedLessonsRoute
+    }
+    '/_authenticated/quizzes/$quizId': {
+      id: '/_authenticated/quizzes/$quizId'
+      path: '/$quizId'
+      fullPath: '/quizzes/$quizId'
+      preLoaderRoute: typeof AuthenticatedQuizzesQuizIdRouteImport
+      parentRoute: typeof AuthenticatedQuizzesRoute
+    }
+    '/_authenticated/quizzes/$quizId/results': {
+      id: '/_authenticated/quizzes/$quizId/results'
+      path: '/results'
+      fullPath: '/quizzes/$quizId/results'
+      preLoaderRoute: typeof AuthenticatedQuizzesQuizIdResultsRouteImport
+      parentRoute: typeof AuthenticatedQuizzesQuizIdRoute
+    }
   }
 }
 
+interface AuthenticatedAssignmentsRouteChildren {
+  AuthenticatedAssignmentsAssignmentIdRoute: typeof AuthenticatedAssignmentsAssignmentIdRoute
+}
+
+const AuthenticatedAssignmentsRouteChildren: AuthenticatedAssignmentsRouteChildren =
+  {
+    AuthenticatedAssignmentsAssignmentIdRoute:
+      AuthenticatedAssignmentsAssignmentIdRoute,
+  }
+
+const AuthenticatedAssignmentsRouteWithChildren =
+  AuthenticatedAssignmentsRoute._addFileChildren(
+    AuthenticatedAssignmentsRouteChildren,
+  )
+
+interface AuthenticatedLessonsRouteChildren {
+  AuthenticatedLessonsLessonIdRoute: typeof AuthenticatedLessonsLessonIdRoute
+}
+
+const AuthenticatedLessonsRouteChildren: AuthenticatedLessonsRouteChildren = {
+  AuthenticatedLessonsLessonIdRoute: AuthenticatedLessonsLessonIdRoute,
+}
+
+const AuthenticatedLessonsRouteWithChildren =
+  AuthenticatedLessonsRoute._addFileChildren(AuthenticatedLessonsRouteChildren)
+
+interface AuthenticatedQuizzesQuizIdRouteChildren {
+  AuthenticatedQuizzesQuizIdResultsRoute: typeof AuthenticatedQuizzesQuizIdResultsRoute
+}
+
+const AuthenticatedQuizzesQuizIdRouteChildren: AuthenticatedQuizzesQuizIdRouteChildren =
+  {
+    AuthenticatedQuizzesQuizIdResultsRoute:
+      AuthenticatedQuizzesQuizIdResultsRoute,
+  }
+
+const AuthenticatedQuizzesQuizIdRouteWithChildren =
+  AuthenticatedQuizzesQuizIdRoute._addFileChildren(
+    AuthenticatedQuizzesQuizIdRouteChildren,
+  )
+
+interface AuthenticatedQuizzesRouteChildren {
+  AuthenticatedQuizzesQuizIdRoute: typeof AuthenticatedQuizzesQuizIdRouteWithChildren
+}
+
+const AuthenticatedQuizzesRouteChildren: AuthenticatedQuizzesRouteChildren = {
+  AuthenticatedQuizzesQuizIdRoute: AuthenticatedQuizzesQuizIdRouteWithChildren,
+}
+
+const AuthenticatedQuizzesRouteWithChildren =
+  AuthenticatedQuizzesRoute._addFileChildren(AuthenticatedQuizzesRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAssignmentsRoute: typeof AuthenticatedAssignmentsRoute
+  AuthenticatedAssignmentsRoute: typeof AuthenticatedAssignmentsRouteWithChildren
   AuthenticatedClassesRoute: typeof AuthenticatedClassesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedLessonsRoute: typeof AuthenticatedLessonsRoute
+  AuthenticatedLessonsRoute: typeof AuthenticatedLessonsRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
-  AuthenticatedQuizzesRoute: typeof AuthenticatedQuizzesRoute
+  AuthenticatedQuizzesRoute: typeof AuthenticatedQuizzesRouteWithChildren
   AuthenticatedStudyCoachRoute: typeof AuthenticatedStudyCoachRoute
   AuthenticatedSubjectsRoute: typeof AuthenticatedSubjectsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAssignmentsRoute: AuthenticatedAssignmentsRoute,
+  AuthenticatedAssignmentsRoute: AuthenticatedAssignmentsRouteWithChildren,
   AuthenticatedClassesRoute: AuthenticatedClassesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedLessonsRoute: AuthenticatedLessonsRoute,
+  AuthenticatedLessonsRoute: AuthenticatedLessonsRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,
-  AuthenticatedQuizzesRoute: AuthenticatedQuizzesRoute,
+  AuthenticatedQuizzesRoute: AuthenticatedQuizzesRouteWithChildren,
   AuthenticatedStudyCoachRoute: AuthenticatedStudyCoachRoute,
   AuthenticatedSubjectsRoute: AuthenticatedSubjectsRoute,
 }
