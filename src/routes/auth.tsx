@@ -9,7 +9,7 @@ import { useSession } from '@/lib/session';
 import { pageMeta } from '@/lib/page-meta';
 
 export const Route = createFileRoute('/auth')({
-  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { redirect?: string | undefined } => ({
     redirect: typeof search['redirect'] === 'string' && search['redirect'].startsWith('/') ? search['redirect'] : undefined,
   }),
   head: () => pageMeta('تسجيل الدخول', 'سجّل دخولك إلى B classes أو أنشئ حسابًا جديدًا لتبدأ رحلتك الدراسية.'),
