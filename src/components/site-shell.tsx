@@ -30,5 +30,10 @@ export function SiteHeader() {
 }
 
 export function SiteFooter() {
-  return <footer className="site-footer"><div className="footer-inner"><Link to="/" aria-label="B classes — الرئيسية"><Brand /></Link><p>مساحة للمعرفة. فرصة للنمو. بداية للمستقبل.</p><nav className="footer-links" aria-label="روابط المنصة"><Link to="/about">عن المنصة</Link><Link to="/contact">تواصل معنا</Link><Link to="/privacy">الخصوصية</Link><Link to="/terms">الشروط</Link></nav><Link to="/grades" search={{ stage: undefined }}>اكتشف مرحلتك <BookOpen size={17} /></Link></div><div className="footer-bottom">B classes · رحلة تعلّم تناسب كل مرحلة</div></footer>;
+  return <footer className="site-footer"><div className="footer-inner footer-grid">
+    <div className="footer-brand"><Link to="/" aria-label="B classes — الرئيسية"><Brand /></Link><p>مساحة للمعرفة. فرصة للنمو. بداية للمستقبل.</p><Link to="/grades" search={{ stage: undefined }} className="footer-cta">اكتشف مرحلتك <BookOpen size={17} /></Link></div>
+    <nav className="footer-col" aria-label="روابط المنصة"><h3>المنصة</h3><Link to="/">الرئيسية</Link><Link to="/grades" search={{ stage: undefined }}>المراحل الدراسية</Link><Link to="/about">عن المنصة</Link></nav>
+    <nav className="footer-col" aria-label="روابط الدعم"><h3>الدعم</h3><Link to="/contact">تواصل معنا</Link><Link to="/auth">تسجيل الدخول</Link></nav>
+    <nav className="footer-col" aria-label="روابط قانونية"><h3>قانوني</h3><Link to="/privacy">الخصوصية</Link><Link to="/terms">الشروط</Link></nav>
+  </div><div className="footer-bottom">B classes · رحلة تعلّم تناسب كل مرحلة</div></footer>;
 }
