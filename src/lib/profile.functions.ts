@@ -28,7 +28,8 @@ export const getMyProfile = createServerFn({ method: 'GET' })
             inviteCode: profile['invite_code'],
           }
         : null,
-      roles: (roles ?? []).map((row) => row['role']),
+      roles: context.access.roles as string[],
+      dbRoles: (roles ?? []).map((row) => row['role']),
     };
   });
 

@@ -21,6 +21,7 @@ export const addTeacher = createServerFn({ method: 'POST' })
   .handler(async ({ data, context }) => {
     const { data: existed, error } = await context.supabase.rpc('admin_add_teacher', { _email: data.email });
     if (error) throw new Error('تعذر إضافة المعلم');
+    await context.accessRepo.createTeacherAccount(data.email);
     return { hasAccount: Boolean(existed) };
   });
 
