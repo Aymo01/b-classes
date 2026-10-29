@@ -7,14 +7,10 @@ export function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254;
 }
 
-/** True when the signed-in address is the teacher's school or linked personal email. */
-export function teacherEmailMatches(
-  teacher: { schoolEmail: string; personalEmail: string | null },
-  email: string | null,
-) {
+/** True only when the signed-in address is the teacher's issued school email. */
+export function teacherEmailMatches(teacher: { schoolEmail: string }, email: string | null) {
   const e = normalizeEmail(email);
-  if (!e) return false;
-  return normalizeEmail(teacher.schoolEmail) === e || normalizeEmail(teacher.personalEmail) === e;
+  return !!e && normalizeEmail(teacher.schoolEmail) === e;
 }
 
 /** Pure rule: a user is approved only if they hold at least one role. */

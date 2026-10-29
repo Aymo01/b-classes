@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
+import { getMyAccess } from '@/lib/access.functions';
 import { getMyProfile } from '@/lib/profile.functions';
 import { listNotifications } from '@/lib/content.functions';
 import { gradeLabel, type Grade } from '@/lib/grades';
@@ -18,8 +19,11 @@ import { gradeLabel, type Grade } from '@/lib/grades';
 export function AccountMenu({ email }: { email: string }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data } = useQuery({ queryKey: ['my-profile'], queryFn: () => getMyProfile() });
-  const { data: notifications } = useQuery({ queryKey: ['notifications'], queryFn: () => listNotifications() });
+  const { data: access } = useQuery({ queryKey: ['my-access'], queryFn: () => getMyAccess() });
+  const approved = access?.status === 'approved';
+  // Pending accounts must not load any school data: they only get sign-out.
+  const { data } = useQuery({ queryKey: ['my-profile'], queryFn: () => getMyProfile(), enabled: approved });
+  const { data: notifications } = useQuery({ queryKey: ['notifications'], queryFn: () => listNotifications(), enabled: approved });
   const unread = (notifications ?? []).filter((n) => !n.readAt).length;
   const roles = data?.roles ?? [];
   const isEditor = roles.includes('teacher') || roles.includes('admin');
@@ -30,6 +34,14 @@ export function AccountMenu({ email }: { email: string }) {
     queryClient.clear();
     await supabase.auth.signOut();
     void navigate({ to: '/auth', replace: true });
+  }
+
+  if (access && !approved) {
+    return (
+      <div className="account-actions">
+        <Button variant="outline" onClick={() => void handleSignOut()} className="account-signout"><LogOut />تسجيل الخروج</Button>
+      </div>
+    );
   }
 
   return (
