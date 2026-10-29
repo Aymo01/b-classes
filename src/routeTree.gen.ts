@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CtrlB7q4x9RouteImport } from './routes/ctrl-b7q4x9'
 import { Route as GradesRouteImport } from './routes/grades'
+import { Route as PendingRouteImport } from './routes/pending'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -71,6 +72,11 @@ const CtrlB7q4x9Route = CtrlB7q4x9RouteImport.update({
 const GradesRoute = GradesRouteImport.update({
   id: '/grades',
   path: '/grades',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PendingRoute = PendingRouteImport.update({
+  id: '/pending',
+  path: '/pending',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -200,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/ctrl-b7q4x9': typeof CtrlB7q4x9Route
   '/grades': typeof GradesRoute
+  '/pending': typeof PendingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
@@ -230,6 +237,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/ctrl-b7q4x9': typeof CtrlB7q4x9Route
   '/grades': typeof GradesRoute
+  '/pending': typeof PendingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
@@ -259,6 +267,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/ctrl-b7q4x9': typeof CtrlB7q4x9Route
   '/grades': typeof GradesRoute
+  '/pending': typeof PendingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
@@ -291,6 +300,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/ctrl-b7q4x9'
     | '/grades'
+    | '/pending'
     | '/privacy'
     | '/reset-password'
     | '/terms'
@@ -321,6 +331,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/ctrl-b7q4x9'
     | '/grades'
+    | '/pending'
     | '/privacy'
     | '/reset-password'
     | '/terms'
@@ -349,6 +360,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/ctrl-b7q4x9'
     | '/grades'
+    | '/pending'
     | '/privacy'
     | '/reset-password'
     | '/terms'
@@ -381,6 +393,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   CtrlB7q4x9Route: typeof CtrlB7q4x9Route
   GradesRoute: typeof GradesRoute
+  PendingRoute: typeof PendingRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TermsRoute: typeof TermsRoute
@@ -435,6 +448,13 @@ declare module '@tanstack/react-router' {
       path: '/grades'
       fullPath: '/grades'
       preLoaderRoute: typeof GradesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pending': {
+      id: '/pending'
+      path: '/pending'
+      fullPath: '/pending'
+      preLoaderRoute: typeof PendingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -693,6 +713,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   CtrlB7q4x9Route: CtrlB7q4x9Route,
   GradesRoute: GradesRoute,
+  PendingRoute: PendingRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TermsRoute: TermsRoute,

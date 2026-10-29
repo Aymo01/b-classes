@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
-import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
+import { requireApprovedMember } from '@/lib/access/middleware';
 
 async function assertEditor(supabase: SupabaseClient<Database>, userId: string) {
   const teacher = await supabase.rpc('has_role', { _user_id: userId, _role: 'teacher' });
@@ -10,7 +10,7 @@ async function assertEditor(supabase: SupabaseClient<Database>, userId: string) 
 }
 
 export const createSubject = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator(
     (input: { title: string; description?: string | null; grade: number }) => input,
   )
@@ -26,7 +26,7 @@ export const createSubject = createServerFn({ method: 'POST' })
   });
 
 export const createLesson = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator(
     (input: {
       subjectId: string;
@@ -57,7 +57,7 @@ export const createLesson = createServerFn({ method: 'POST' })
   });
 
 export const createClass = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator(
     (input: {
       subjectId: string;
@@ -88,7 +88,7 @@ export const createClass = createServerFn({ method: 'POST' })
   });
 
 export const createAssignment = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator(
     (input: { subjectId: string; title: string; instructions?: string | null; dueAt?: string | null }) => input,
   )
@@ -110,7 +110,7 @@ export const createAssignment = createServerFn({ method: 'POST' })
   });
 
 export const createQuiz = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator(
     (input: {
       subjectId: string;
@@ -151,7 +151,7 @@ export const createQuiz = createServerFn({ method: 'POST' })
 export type TeacherRowDTO = { id: string; title: string; meta: string; subjectTitle: string; grade: number };
 
 export const listTeacherContent = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .handler(async ({ context }) => {
     await assertEditor(context.supabase, context.userId);
     const [subjects, lessons, classes, assignments, quizzes, submissions] = await Promise.all([
@@ -218,7 +218,7 @@ export const listTeacherContent = createServerFn({ method: 'GET' })
   });
 
 export const gradeSubmission = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { submissionId: string; score: number; feedback?: string | null }) => input)
   .handler(async ({ data, context }) => {
     await assertEditor(context.supabase, context.userId);
@@ -231,7 +231,7 @@ export const gradeSubmission = createServerFn({ method: 'POST' })
   });
 
 export const deleteContent = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { table: 'subjects' | 'lessons' | 'classes' | 'assignments' | 'quizzes'; id: string }) => input)
   .handler(async ({ data, context }) => {
     await assertEditor(context.supabase, context.userId);
