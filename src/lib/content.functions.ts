@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
-import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
+import { requireApprovedMember } from '@/lib/access/middleware';
 
 export type SubjectDTO = { id: string; title: string; description: string | null; grade: number };
 export type LessonDTO = {
@@ -47,7 +47,7 @@ export type SubmissionDTO = {
 export type QuizAttemptDTO = { quizId: string; score: number; total: number; submittedAt: string };
 
 export const listSubjects = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { grade?: number | null } | undefined) => input ?? {})
   .handler(async ({ data, context }) => {
     let query = context.supabase.from('subjects').select('id, title, description, grade');
@@ -57,7 +57,7 @@ export const listSubjects = createServerFn({ method: 'GET' })
   });
 
 export const listLessons = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { grade?: number | null } | undefined) => input ?? {})
   .handler(async ({ data, context }) => {
     let query = context.supabase
@@ -78,7 +78,7 @@ export const listLessons = createServerFn({ method: 'GET' })
   });
 
 export const getLesson = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { lessonId: string }) => input)
   .handler(async ({ data, context }) => {
     const { data: lesson } = await context.supabase
@@ -99,7 +99,7 @@ export const getLesson = createServerFn({ method: 'GET' })
   });
 
 export const listMyCompletions = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .handler(async ({ context }) => {
     const { data } = await context.supabase
       .from('lesson_completions')
@@ -109,7 +109,7 @@ export const listMyCompletions = createServerFn({ method: 'GET' })
   });
 
 export const setLessonCompleted = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { lessonId: string; completed: boolean }) => input)
   .handler(async ({ data, context }) => {
     if (data.completed) {
@@ -128,7 +128,7 @@ export const setLessonCompleted = createServerFn({ method: 'POST' })
   });
 
 export const listClasses = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { grade?: number | null } | undefined) => input ?? {})
   .handler(async ({ data, context }) => {
     let query = context.supabase
@@ -149,7 +149,7 @@ export const listClasses = createServerFn({ method: 'GET' })
   });
 
 export const listAssignments = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { grade?: number | null } | undefined) => input ?? {})
   .handler(async ({ data, context }) => {
     let query = context.supabase
@@ -168,7 +168,7 @@ export const listAssignments = createServerFn({ method: 'GET' })
   });
 
 export const getAssignment = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { assignmentId: string }) => input)
   .handler(async ({ data, context }) => {
     const { data: assignment } = await context.supabase
@@ -189,7 +189,7 @@ export const getAssignment = createServerFn({ method: 'GET' })
   });
 
 export const listMySubmissions = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .handler(async ({ context }) => {
     const { data } = await context.supabase
       .from('submissions')
@@ -209,7 +209,7 @@ export const listMySubmissions = createServerFn({ method: 'GET' })
   });
 
 export const submitAssignment = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { assignmentId: string; content?: string | null; filePath?: string | null }) => input)
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from('submissions').insert({
@@ -223,7 +223,7 @@ export const submitAssignment = createServerFn({ method: 'POST' })
   });
 
 export const listQuizzes = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { grade?: number | null } | undefined) => input ?? {})
   .handler(async ({ data, context }) => {
     let query = context.supabase
@@ -242,7 +242,7 @@ export const listQuizzes = createServerFn({ method: 'GET' })
   });
 
 export const listMyQuizAttempts = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .handler(async ({ context }) => {
     const { data } = await context.supabase
       .from('quiz_attempts')
@@ -266,7 +266,7 @@ export type TakenQuizDTO = {
 };
 
 export const getQuizToTake = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { quizId: string }) => input)
   .handler(async ({ data, context }) => {
     const { data: quiz } = await context.supabase
@@ -299,7 +299,7 @@ export type QuizResultDTO = {
 };
 
 export const submitQuizAttempt = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { quizId: string; answers: Record<string, number> }) => input)
   .handler(async ({ data, context }) => {
     const { data: result, error } = await context.supabase.rpc('submit_quiz', {
@@ -311,7 +311,7 @@ export const submitQuizAttempt = createServerFn({ method: 'POST' })
   });
 
 export const getQuizResult = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { quizId: string }) => input)
   .handler(async ({ data, context }) => {
     const { data: review, error } = await context.supabase.rpc('get_quiz_review', { _quiz_id: data.quizId });
@@ -348,7 +348,7 @@ export type NotificationDTO = {
 };
 
 export const listNotifications = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .handler(async ({ context }) => {
     const { data } = await context.supabase
       .from('notifications')
@@ -367,7 +367,7 @@ export const listNotifications = createServerFn({ method: 'GET' })
   });
 
 export const markNotificationsRead = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .handler(async ({ context }) => {
     await context.supabase
       .from('notifications')

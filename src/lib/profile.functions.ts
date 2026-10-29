@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
-import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
+import { requireApprovedMember } from '@/lib/access/middleware';
 
 export type ProfileDTO = {
   id: string;
@@ -9,7 +9,7 @@ export type ProfileDTO = {
 };
 
 export const getMyProfile = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .handler(async ({ context }) => {
     const [{ data: profile }, { data: roles }] = await Promise.all([
       context.supabase
@@ -33,7 +33,7 @@ export const getMyProfile = createServerFn({ method: 'GET' })
   });
 
 export const updateMyProfile = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator(
     (input: { displayName?: string | null; grade?: number | null }) => input,
   )
@@ -52,7 +52,7 @@ export const updateMyProfile = createServerFn({ method: 'POST' })
   });
 
 export const linkChildByCode = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { code: string }) => input)
   .handler(async ({ data, context }) => {
     const { data: studentId, error } = await context.supabase.rpc('link_parent_by_code', {
@@ -70,7 +70,7 @@ export type ChildDTO = {
 };
 
 export const listMyChildren = createServerFn({ method: 'GET' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .handler(async ({ context }) => {
     const { data: links } = await context.supabase
       .from('parent_links')
@@ -107,7 +107,7 @@ export type StudentOverviewDTO = {
 };
 
 export const getStudentOverview = createServerFn({ method: 'POST' })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedMember])
   .inputValidator((input: { studentId: string }) => input)
   .handler(async ({ data, context }): Promise<StudentOverviewDTO> => {
     const uid = context.userId;
