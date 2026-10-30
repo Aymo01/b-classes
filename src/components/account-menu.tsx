@@ -11,11 +11,35 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
+import { getMyAccess } from '@/lib/access.functions';
 import { getMyProfile } from '@/lib/profile.functions';
 import { listNotifications } from '@/lib/content.functions';
 import { gradeLabel, type Grade } from '@/lib/grades';
 
+/** Only checks membership; school data is requested by ApprovedAccountMenu once approved. */
 export function AccountMenu({ email }: { email: string }) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { data: access } = useQuery({ queryKey: ['my-access'], queryFn: () => getMyAccess() });
+
+  async function handleSignOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    void navigate({ to: '/auth', replace: true });
+  }
+
+  if (access?.status === 'approved') return <ApprovedAccountMenu email={email} />;
+
+  // Pending (or still checking): sign-out only, and nothing from the school is loaded.
+  return (
+    <div className="account-actions">
+      <Button variant="outline" className="account-signout" onClick={() => void handleSignOut()}><LogOut />تسجيل الخروج</Button>
+    </div>
+  );
+}
+
+function ApprovedAccountMenu({ email }: { email: string }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data } = useQuery({ queryKey: ['my-profile'], queryFn: () => getMyProfile() });
