@@ -20,6 +20,7 @@ import { Route as PendingRouteImport } from './routes/pending'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AuthenticatedAiTeacherRouteImport } from './routes/_authenticated/ai-teacher'
 import { Route as AuthenticatedAssignmentsRouteImport } from './routes/_authenticated/assignments'
 import { Route as AuthenticatedClassesRouteImport } from './routes/_authenticated/classes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -93,6 +94,11 @@ const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAiTeacherRoute = AuthenticatedAiTeacherRouteImport.update({
+  id: '/ai-teacher',
+  path: '/ai-teacher',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAssignmentsRoute =
   AuthenticatedAssignmentsRouteImport.update({
@@ -210,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
+  '/ai-teacher': typeof AuthenticatedAiTeacherRoute
   '/assignments': typeof AuthenticatedAssignmentsRouteWithChildren
   '/classes': typeof AuthenticatedClassesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -241,6 +248,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
+  '/ai-teacher': typeof AuthenticatedAiTeacherRoute
   '/classes': typeof AuthenticatedClassesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -271,6 +279,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
+  '/_authenticated/ai-teacher': typeof AuthenticatedAiTeacherRoute
   '/_authenticated/assignments': typeof AuthenticatedAssignmentsRouteWithChildren
   '/_authenticated/classes': typeof AuthenticatedClassesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -304,6 +313,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/terms'
+    | '/ai-teacher'
     | '/assignments'
     | '/classes'
     | '/dashboard'
@@ -335,6 +345,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/terms'
+    | '/ai-teacher'
     | '/classes'
     | '/dashboard'
     | '/notifications'
@@ -364,6 +375,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/terms'
+    | '/_authenticated/ai-teacher'
     | '/_authenticated/assignments'
     | '/_authenticated/classes'
     | '/_authenticated/dashboard'
@@ -477,6 +489,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/ai-teacher': {
+      id: '/_authenticated/ai-teacher'
+      path: '/ai-teacher'
+      fullPath: '/ai-teacher'
+      preLoaderRoute: typeof AuthenticatedAiTeacherRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/assignments': {
       id: '/_authenticated/assignments'
@@ -673,6 +692,7 @@ const AuthenticatedQuizzesRouteWithChildren =
   AuthenticatedQuizzesRoute._addFileChildren(AuthenticatedQuizzesRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAiTeacherRoute: typeof AuthenticatedAiTeacherRoute
   AuthenticatedAssignmentsRoute: typeof AuthenticatedAssignmentsRouteWithChildren
   AuthenticatedClassesRoute: typeof AuthenticatedClassesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -688,6 +708,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAiTeacherRoute: AuthenticatedAiTeacherRoute,
   AuthenticatedAssignmentsRoute: AuthenticatedAssignmentsRouteWithChildren,
   AuthenticatedClassesRoute: AuthenticatedClassesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
