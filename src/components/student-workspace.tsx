@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Bell, BookOpen, CalendarDays, Check, CheckCircle2, ClipboardList, FileQuestion, GraduationCap, LayoutGrid, Lightbulb, Loader2, Play, Search, Target, Trophy, UserRound, Video, Waves } from 'lucide-react';
+import { ArrowLeft, Bell, BookOpen, CalendarDays, Check, CheckCircle2, ClipboardList, FileQuestion, GraduationCap, LayoutGrid, Lightbulb, Loader2, Play, Search, Target, Trophy, UserRound, Smile, Video, Waves } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useGrade } from '@/components/grade-provider';
@@ -18,6 +18,7 @@ export const studentNavigation = [
   { to: '/assignments', title: 'الواجبات', icon: ClipboardList },
   { to: '/quizzes', title: 'الاختبارات', icon: FileQuestion },
   { to: '/study-coach', title: 'مرشدي الدراسي', icon: Lightbulb },
+  { to: '/ai-teacher', title: 'معلّمي الصغير', icon: Smile },
   { to: '/progress', title: 'تقدّمي', icon: Target },
   { to: '/notifications', title: 'الإشعارات', icon: Bell },
   { to: '/profile', title: 'ملفي الشخصي', icon: UserRound },
