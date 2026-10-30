@@ -20,7 +20,7 @@ function AiTeacherPage() {
   const [messages, setMessages] = useState<Msg[]>([{ from: 'teacher', text: greetingReply }]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const lastReply = [...messages].reverse().find((m) => m.from === 'teacher')?.text;
 
   useEffect(() => () => clearTimeout(timer.current), []);
