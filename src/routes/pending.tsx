@@ -36,7 +36,6 @@ function PendingPage() {
         <div className="auth-heading">
           <span className="auth-icon"><Hourglass /></span>
           <h1>حسابك بانتظار الموافقة</h1>
-          <p>لم تتم إضافة بريدك إلى قائمة المدرسة بعد. تواصل مع إدارة المدرسة لتفعيل حسابك، ثم سجّل دخولك مرة أخرى.</p>
         </div>
         <Button size="lg" variant="outline" onClick={() => void signOut()}><LogOut />تسجيل الخروج</Button>
       </div>

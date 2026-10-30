@@ -1,19 +1,28 @@
 export type AppRole = 'student' | 'parent' | 'teacher' | 'admin';
 export type AllowlistRole = 'student' | 'parent';
 
+/** A teacher issued by an admin. Teachers sign in only with this school email. */
 export type TeacherAccount = {
   id: string;
   userId: string | null;
   schoolEmail: string;
-  personalEmail: string | null;
-  loginEmail: string | null;
-  linkedAt: string | null;
+  lastSignInAt: string | null;
+  createdAt: string;
 };
 
 export type AllowlistEntry = {
   email: string;
   role: AllowlistRole;
+  /** 1–12 for students, null for parents. */
+  grade: number | null;
   addedBy: string | null;
+  createdAt: string;
+};
+
+/** Someone who signed up but holds no role yet. */
+export type PendingSignup = {
+  userId: string;
+  email: string;
   createdAt: string;
 };
 
@@ -31,17 +40,25 @@ export type AccessResult = {
   email: string | null;
 };
 
+export type AllowlistInput = { email: string; role: AllowlistRole; grade: number | null };
+
 /**
- * Data access for membership. Implemented by an in-memory mock today and by
- * the database later (see supabase-repository.ts). Callers never touch tables.
+ * Data access for membership. Implemented by an in-memory mock for development and by
+ * the database (see supabase-repository.ts). Callers never touch tables.
  */
 export interface AccessRepository {
-  /** Gathers facts and records which teacher address was used to sign in. */
+  /** Gathers facts and records the sign-in of a teacher or of a user who holds no role yet. */
   getAccessFacts(userId: string, email: string | null): Promise<AccessFacts>;
-  getTeacherAccount(userId: string): Promise<TeacherAccount | null>;
-  linkPersonalEmail(userId: string, personalEmail: string): Promise<TeacherAccount>;
-  createTeacherAccount(schoolEmail: string): Promise<void>;
-  listStudentAllowlist(): Promise<AllowlistEntry[]>;
-  addStudentAllowlist(email: string, role: AllowlistRole, addedBy: string): Promise<void>;
-  removeStudentAllowlist(email: string): Promise<void>;
+
+  listTeachers(): Promise<TeacherAccount[]>;
+  addTeacher(schoolEmail: string, addedBy: string): Promise<void>;
+  removeTeacher(schoolEmail: string): Promise<void>;
+
+  listAllowlist(): Promise<AllowlistEntry[]>;
+  addAllowlist(input: AllowlistInput, addedBy: string): Promise<void>;
+  removeAllowlist(email: string): Promise<void>;
+
+  listPendingSignups(): Promise<PendingSignup[]>;
+  approveSignup(userId: string, role: AllowlistRole, grade: number | null, approvedBy: string): Promise<void>;
+  rejectSignup(userId: string, rejectedBy: string): Promise<void>;
 }
