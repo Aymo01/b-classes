@@ -1,6 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Lightbulb, Loader2 } from 'lucide-react';
+import { ArrowLeft, Lightbulb, ListChecks, Loader2 } from 'lucide-react';
 import { StudentWorkspace, EmptyState } from '@/components/student-workspace';
 import { Button } from '@/components/ui/button';
 import { useGrade } from '@/components/grade-provider';
@@ -53,6 +53,7 @@ function StudyCoach() {
       <div aria-live="polite" className="mt-6">
         {error && <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">{error}</p>}
         {guidance && <article className="rounded-lg border border-border bg-card p-5 text-sm leading-8 text-card-foreground whitespace-pre-wrap">{guidance}</article>}
+        {guidance && <Button variant="outline" asChild className="mt-4"><Link to="/study-plan"><ListChecks />حوّل النصائح إلى مهام في خطتي<ArrowLeft /></Link></Button>}
         {!guidance && !error && !loading && <EmptyState icon={Lightbulb} title="خطتك ستظهر هنا" text="اكتب ما تحتاج المساعدة فيه، وسنقترح خطوات عملية تبدأ بها." />}
       </div>
     </StudentWorkspace>

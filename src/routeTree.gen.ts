@@ -32,6 +32,7 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AuthenticatedQuizzesRouteImport } from './routes/_authenticated/quizzes'
 import { Route as AuthenticatedStudyCoachRouteImport } from './routes/_authenticated/study-coach'
+import { Route as AuthenticatedStudyPlanRouteImport } from './routes/_authenticated/study-plan'
 import { Route as AuthenticatedSubjectsRouteImport } from './routes/_authenticated/subjects'
 import { Route as AuthenticatedTeacherRouteImport } from './routes/_authenticated/teacher'
 import { Route as AuthenticatedAssignmentsIndexRouteImport } from './routes/_authenticated/assignments.index'
@@ -158,6 +159,11 @@ const AuthenticatedStudyCoachRoute = AuthenticatedStudyCoachRouteImport.update({
   path: '/study-coach',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedStudyPlanRoute = AuthenticatedStudyPlanRouteImport.update({
+  id: '/study-plan',
+  path: '/study-plan',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSubjectsRoute = AuthenticatedSubjectsRouteImport.update({
   id: '/subjects',
   path: '/subjects',
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/progress': typeof AuthenticatedProgressRoute
   '/quizzes': typeof AuthenticatedQuizzesRouteWithChildren
   '/study-coach': typeof AuthenticatedStudyCoachRoute
+  '/study-plan': typeof AuthenticatedStudyPlanRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/teacher': typeof AuthenticatedTeacherRoute
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
@@ -264,6 +271,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/progress': typeof AuthenticatedProgressRoute
   '/study-coach': typeof AuthenticatedStudyCoachRoute
+  '/study-plan': typeof AuthenticatedStudyPlanRoute
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/teacher': typeof AuthenticatedTeacherRoute
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
@@ -299,6 +307,7 @@ export interface FileRoutesById {
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/quizzes': typeof AuthenticatedQuizzesRouteWithChildren
   '/_authenticated/study-coach': typeof AuthenticatedStudyCoachRoute
+  '/_authenticated/study-plan': typeof AuthenticatedStudyPlanRoute
   '/_authenticated/subjects': typeof AuthenticatedSubjectsRoute
   '/_authenticated/teacher': typeof AuthenticatedTeacherRoute
   '/_authenticated/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
@@ -334,6 +343,7 @@ export interface FileRouteTypes {
     | '/progress'
     | '/quizzes'
     | '/study-coach'
+    | '/study-plan'
     | '/subjects'
     | '/teacher'
     | '/assignments/$assignmentId'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/progress'
     | '/study-coach'
+    | '/study-plan'
     | '/subjects'
     | '/teacher'
     | '/assignments/$assignmentId'
@@ -398,6 +409,7 @@ export interface FileRouteTypes {
     | '/_authenticated/progress'
     | '/_authenticated/quizzes'
     | '/_authenticated/study-coach'
+    | '/_authenticated/study-plan'
     | '/_authenticated/subjects'
     | '/_authenticated/teacher'
     | '/_authenticated/assignments/$assignmentId'
@@ -586,6 +598,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudyCoachRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/study-plan': {
+      id: '/_authenticated/study-plan'
+      path: '/study-plan'
+      fullPath: '/study-plan'
+      preLoaderRoute: typeof AuthenticatedStudyPlanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/subjects': {
       id: '/_authenticated/subjects'
       path: '/subjects'
@@ -723,6 +742,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
   AuthenticatedQuizzesRoute: typeof AuthenticatedQuizzesRouteWithChildren
   AuthenticatedStudyCoachRoute: typeof AuthenticatedStudyCoachRoute
+  AuthenticatedStudyPlanRoute: typeof AuthenticatedStudyPlanRoute
   AuthenticatedSubjectsRoute: typeof AuthenticatedSubjectsRoute
   AuthenticatedTeacherRoute: typeof AuthenticatedTeacherRoute
 }
@@ -740,6 +760,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,
   AuthenticatedQuizzesRoute: AuthenticatedQuizzesRouteWithChildren,
   AuthenticatedStudyCoachRoute: AuthenticatedStudyCoachRoute,
+  AuthenticatedStudyPlanRoute: AuthenticatedStudyPlanRoute,
   AuthenticatedSubjectsRoute: AuthenticatedSubjectsRoute,
   AuthenticatedTeacherRoute: AuthenticatedTeacherRoute,
 }

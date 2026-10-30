@@ -1,13 +1,15 @@
 import { Link } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Bell, BookOpen, CalendarDays, Check, CheckCircle2, ClipboardList, FileQuestion, GraduationCap, LayoutGrid, Lightbulb, Loader2, MessageSquare, Play, Search, Target, Trophy, UserRound, Smile, Video, Waves } from 'lucide-react';
+import { ArrowLeft, Bell, BookOpen, CalendarDays, Check, CheckCircle2, ClipboardList, FileQuestion, GraduationCap, LayoutGrid, Lightbulb, ListChecks, Loader2, MessageSquare, Play, Search, Target, Trophy, UserRound, Smile, Video, Waves } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useGrade } from '@/components/grade-provider';
 import { useSession } from '@/lib/session';
 import { gradeLabel, themeForGrade } from '@/lib/grades';
 import { getMyProfile, getStudentOverview, updateMyProfile } from '@/lib/profile.functions';
+import { PlanProgressBar } from '@/components/study-plan-parts';
+import { getMyStudyPlan } from '@/lib/study-plans.functions';
 import { listAssignments, listClasses, listLessons, listMyCompletions, listMyQuizAttempts, listMySubmissions, listQuizzes, listSubjects } from '@/lib/content.functions';
 
 export const studentNavigation = [
@@ -18,6 +20,7 @@ export const studentNavigation = [
   { to: '/assignments', title: 'الواجبات', icon: ClipboardList },
   { to: '/quizzes', title: 'الاختبارات', icon: FileQuestion },
   { to: '/study-coach', title: 'مرشدي الدراسي', icon: Lightbulb },
+  { to: '/study-plan', title: 'خطتي الدراسية', icon: ListChecks },
   { to: '/ai-teacher', title: 'معلّمي الصغير', icon: Smile },
   { to: '/progress', title: 'تقدّمي', icon: Target },
   { to: '/messages', title: 'الرسائل', icon: MessageSquare },
@@ -56,6 +59,7 @@ export function DashboardDesign() {
   const { data: completions } = useQuery({ queryKey: ['completions'], queryFn: () => listMyCompletions(), enabled: !!user });
   const completedIds = new Set((completions ?? []).map((c) => c.lessonId));
   const nextLesson = (lessons ?? []).find((l) => !completedIds.has(l.id));
+  const { data: studyPlan } = useQuery({ queryKey: ['study-plan'], queryFn: () => getMyStudyPlan(), enabled: !!user });
 
   return <StudentWorkspace title={theme === 'elementary' ? 'جاهز لاكتشاف شيء جديد؟' : theme === 'secondary' ? 'خطوتك التالية نحو طموحك.' : 'أهلًا بك في رحلة التعلّم.'} subtitle="مساحة تجمع خطوتك القادمة وما أنجزته في رحلتك.">
     <section className="student-welcome"><div><span className="welcome-label">بداية جديدة</span><h2>{theme === 'elementary' ? 'كل سؤال، مغامرة صغيرة.' : 'كل يوم فرصة لتتقدّم.'}</h2><p>ابدأ من موادك الدراسية، وخذ خطوتك التالية بثقة.</p><Button asChild><Link to="/subjects">استكشف موادي<ArrowLeft /></Link></Button></div><span className="welcome-illustration" aria-hidden="true">{theme === 'elementary' ? <Waves /> : <GraduationCap />}</span></section>
@@ -66,6 +70,10 @@ export function DashboardDesign() {
         <div className="study-metric"><span><FileQuestion /></span><p>متوسط الاختبارات</p><strong>{data?.quizzesAverage != null ? `${data.quizzesAverage}%` : '—'}</strong><small>{data && data.quizzesTaken > 0 ? `${data.quizzesTaken} اختبار مكتمل` : 'لا توجد بيانات بعد'}</small></div>
       </div>
     )}
+    <section className="plan-summary" aria-label="خطتي الدراسية">
+      <div className="study-section-title"><h2>{studyPlan?.title ?? 'خطتي الأسبوعية'}</h2><Button variant="link" asChild><Link to="/study-plan">افتح خطتي<ArrowLeft /></Link></Button></div>
+      <PlanProgressBar items={studyPlan?.items ?? []} />
+    </section>
     <div className="workspace-columns">
       <section><div className="study-section-title"><h2>خطوتك القادمة</h2><Button variant="link" asChild><Link to="/lessons">كل الدروس<ArrowLeft /></Link></Button></div>
         {nextLesson ? <div className="content-card"><div><span className="content-card-kicker">{nextLesson.subject?.title ?? 'درس'}</span><h3>{nextLesson.title}</h3>{nextLesson.description && <p>{nextLesson.description}</p>}</div><Button asChild><Link to="/lessons/$lessonId" params={{ lessonId: nextLesson.id }}><Play />ابدأ الدرس</Link></Button></div>

@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { BookOpen, CheckCircle2, ClipboardList, FileQuestion, Link2, Loader2, MessageSquare, Users } from 'lucide-react';
+import { BookOpen, CheckCircle2, ClipboardList, FileQuestion, Link2, ListChecks, Loader2, MessageSquare, Users } from 'lucide-react';
 import { MessagesPanel, UnreadBadge } from '@/components/messages-panel';
+import { PlanItemsReadOnly, PlanProgressBar } from '@/components/study-plan-parts';
+import { getChildStudyPlan } from '@/lib/study-plans.functions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState, StudentWorkspace } from '@/components/student-workspace';
@@ -35,6 +37,12 @@ function ParentPage() {
   const { data: overview } = useQuery({
     queryKey: ['overview', activeChild],
     queryFn: () => getStudentOverview({ data: { studentId: activeChild! } }),
+    enabled: !!activeChild,
+  });
+
+  const { data: childPlan } = useQuery({
+    queryKey: ['child-study-plan', activeChild],
+    queryFn: () => getChildStudyPlan({ data: { studentId: activeChild! } }),
     enabled: !!activeChild,
   });
 
@@ -90,6 +98,17 @@ function ParentPage() {
               </Button>
             ))}
           </div>
+          <section aria-labelledby="child-plan-title">
+            <div className="study-section-title"><h2 id="child-plan-title">{childPlan?.title ?? 'خطة الدراسة'}</h2><ListChecks size={20} /></div>
+            {childPlan && childPlan.items.length > 0 ? (
+              <>
+                <PlanProgressBar items={childPlan.items} />
+                <PlanItemsReadOnly items={childPlan.items} />
+              </>
+            ) : (
+              <EmptyState icon={ListChecks} title="لا توجد خطة بعد" text="لم يضف طفلك مهام إلى خطته الدراسية بعد." />
+            )}
+          </section>
           {overview ? (
             <>
               <div className="study-metrics">

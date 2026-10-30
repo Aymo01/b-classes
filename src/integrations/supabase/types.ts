@@ -358,6 +358,72 @@ export type Database = {
           },
         ]
       }
+      study_plan_items: {
+        Row: {
+          created_at: string
+          done: boolean
+          due_date: string | null
+          id: string
+          lesson_id: string | null
+          plan_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          due_date?: string | null
+          id?: string
+          lesson_id?: string | null
+          plan_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          due_date?: string | null
+          id?: string
+          lesson_id?: string | null
+          plan_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_plan_items_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "study_plan_items_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "study_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_plans: {
+        Row: {
+          created_at: string
+          id: string
+          student_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          student_id: string
+          title?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          student_id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       subjects: {
         Row: {
           created_at: string
