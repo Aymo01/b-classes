@@ -1,7 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { BookOpen, Check, ClipboardList, FileQuestion, Loader2, Play, Plus, Trash2, Video, Wrench } from 'lucide-react';
+import { BookOpen, Check, ClipboardList, FileQuestion, Loader2, MessageSquare, Play, Plus, Trash2, Video, Wrench } from 'lucide-react';
+import { MessagesPanel, UnreadBadge } from '@/components/messages-panel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,6 +16,10 @@ import { pageMeta } from '@/lib/page-meta';
 
 export const Route = createFileRoute('/_authenticated/teacher')({
   head: () => pageMeta('منطقة المعلم', 'إدارة المواد والدروس والحصص والواجبات والاختبارات في B classes.'),
+  validateSearch: (search: Record<string, unknown>): { tab?: string | undefined; c?: string | undefined } => ({
+    tab: typeof search['tab'] === 'string' ? search['tab'] : undefined,
+    c: typeof search['c'] === 'string' ? search['c'] : undefined,
+  }),
   component: TeacherPage,
 });
 
@@ -37,6 +42,8 @@ function SubjectPicker({ subjects, value, onChange }: { subjects: SubjectRow[]; 
 
 function TeacherPage() {
   const queryClient = useQueryClient();
+  const { tab, c: conversationId } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const { data: me } = useQuery({ queryKey: ['my-profile'], queryFn: () => getMyProfile() });
   const isEditor = (me?.roles ?? []).some((r) => r === 'teacher' || r === 'admin');
   const { data, isLoading, error } = useQuery({ queryKey: ['teacher-content'], queryFn: () => listTeacherContent(), enabled: isEditor });
@@ -81,7 +88,7 @@ function TeacherPage() {
       {isLoading ? <div className="study-empty" role="status"><Loader2 className="animate-spin" size={28} /><p>جارٍ التحميل...</p></div> : error ? (
         <EmptyState icon={Wrench} title="تعذر تحميل المحتوى" text="حدث خطأ غير متوقع. حاول تحديث الصفحة." />
       ) : (
-        <Tabs defaultValue="subjects" dir="rtl">
+        <Tabs value={tab ?? 'subjects'} onValueChange={(value) => void navigate({ search: { tab: value, c: undefined } })} dir="rtl">
           <TabsList className="teacher-tabs">
             <TabsTrigger value="subjects"><BookOpen />المواد</TabsTrigger>
             <TabsTrigger value="lessons"><Play />الدروس</TabsTrigger>
@@ -89,6 +96,7 @@ function TeacherPage() {
             <TabsTrigger value="assignments"><ClipboardList />الواجبات</TabsTrigger>
             <TabsTrigger value="quizzes"><FileQuestion />الاختبارات</TabsTrigger>
             <TabsTrigger value="submissions"><Check />التسليمات</TabsTrigger>
+            <TabsTrigger value="messages"><MessageSquare />الرسائل<UnreadBadge /></TabsTrigger>
           </TabsList>
 
           <TabsContent value="subjects">
@@ -125,6 +133,10 @@ function TeacherPage() {
 
           <TabsContent value="submissions">
             <SubmissionsList rows={data?.submissions ?? []} onGraded={() => { void invalidate(); setMessage('تم حفظ التقييم.'); }} />
+          </TabsContent>
+
+          <TabsContent value="messages">
+            <MessagesPanel selectedId={conversationId} onSelect={(id) => void navigate({ search: { tab: 'messages', c: id } })} />
           </TabsContent>
         </Tabs>
       )}

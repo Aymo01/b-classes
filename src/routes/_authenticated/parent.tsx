@@ -1,7 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { BookOpen, CheckCircle2, ClipboardList, FileQuestion, Link2, Loader2, Users } from 'lucide-react';
+import { BookOpen, CheckCircle2, ClipboardList, FileQuestion, Link2, Loader2, MessageSquare, Users } from 'lucide-react';
+import { MessagesPanel, UnreadBadge } from '@/components/messages-panel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState, StudentWorkspace } from '@/components/student-workspace';
@@ -11,11 +12,14 @@ import { pageMeta } from '@/lib/page-meta';
 
 export const Route = createFileRoute('/_authenticated/parent')({
   head: () => pageMeta('منطقة ولي الأمر', 'تابع تقدّم أبنائك الدراسي في B classes.'),
+  validateSearch: (search: Record<string, unknown>): { c?: string | undefined } => ({ c: typeof search['c'] === 'string' ? search['c'] : undefined }),
   component: ParentPage,
 });
 
 function ParentPage() {
   const queryClient = useQueryClient();
+  const { c: conversationId } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const { data: me } = useQuery({ queryKey: ['my-profile'], queryFn: () => getMyProfile() });
   const { data: childrenData, isLoading } = useQuery({ queryKey: ['my-children'], queryFn: () => listMyChildren() });
   const [code, setCode] = useState('');
@@ -69,6 +73,11 @@ function ParentPage() {
         {error && <p className="auth-error" role="alert">{error}</p>}
         {linked && <p className="auth-notice" role="status"><CheckCircle2 size={16} />تم ربط الحساب بنجاح.</p>}
       </form>
+
+      <section aria-labelledby="parent-messages-title">
+        <div className="study-section-title"><h2 id="parent-messages-title" className="messages-heading-badge">رسائل المعلمين<UnreadBadge /></h2><MessageSquare size={20} /></div>
+        <MessagesPanel selectedId={conversationId} onSelect={(id) => void navigate({ search: { c: id } })} />
+      </section>
 
       {children.length === 0 ? (
         <EmptyState icon={Users} title="لا يوجد أبناء مرتبطون بعد" text="اربط حساب طفلك برمز الدعوة لمتابعة تقدّمه." />

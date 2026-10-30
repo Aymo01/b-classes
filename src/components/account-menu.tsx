@@ -1,6 +1,8 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Bell, GraduationCap, LogOut, UserRound, Users, Wrench } from 'lucide-react';
+import { Bell, GraduationCap, LogOut, MessageSquare, UserRound, Users, Wrench } from 'lucide-react';
+import { UnreadBadge } from '@/components/messages-panel';
+import { useMessageNotifications, useMessagingViewer } from '@/lib/messaging/hooks';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -20,7 +22,14 @@ export function AccountMenu({ email }: { email: string }) {
   const queryClient = useQueryClient();
   const { data } = useQuery({ queryKey: ['my-profile'], queryFn: () => getMyProfile() });
   const { data: notifications } = useQuery({ queryKey: ['notifications'], queryFn: () => listNotifications() });
-  const unread = (notifications ?? []).filter((n) => !n.readAt).length;
+  const viewer = useMessagingViewer();
+  const { data: messageNotifications } = useMessageNotifications();
+  const unread = (notifications ?? []).filter((n) => !n.readAt).length + (messageNotifications ?? []).filter((n) => !n.readAt).length;
+  // Teachers reply inside the teacher area and parents stay in the parent area.
+  const messagesLink =
+    viewer?.role === 'teacher' ? <Link to="/teacher" search={{ tab: 'messages' }}><MessageSquare />الرسائل<UnreadBadge /></Link>
+    : viewer?.role === 'parent' ? <Link to="/parent"><MessageSquare />الرسائل<UnreadBadge /></Link>
+    : <Link to="/messages"><MessageSquare />الرسائل<UnreadBadge /></Link>;
   const roles = data?.roles ?? [];
   const isEditor = roles.includes('teacher') || roles.includes('admin');
   const isParent = roles.includes('parent');
@@ -58,6 +67,7 @@ export function AccountMenu({ email }: { email: string }) {
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild><Link to="/profile"><UserRound />ملفي الشخصي</Link></DropdownMenuItem>
           <DropdownMenuItem asChild><Link to="/notifications"><Bell />الإشعارات{unread > 0 && <span className="menu-badge">{unread}</span>}</Link></DropdownMenuItem>
+          <DropdownMenuItem asChild>{messagesLink}</DropdownMenuItem>
           {isEditor && <DropdownMenuItem asChild><Link to="/teacher"><Wrench />منطقة المعلم</Link></DropdownMenuItem>}
           <DropdownMenuItem asChild><Link to="/parent"><Users />{isParent ? 'منطقة ولي الأمر' : 'أنا ولي أمر'}</Link></DropdownMenuItem>
           <DropdownMenuSeparator />
