@@ -155,30 +155,25 @@
 .section-heading p { margin-top: 7px; font-size: 13px; color: var(--muted-foreground); line-height: 1.9; }
 .section-note { display: flex; align-items: center; gap: 8px; color: var(--muted-foreground); font-size: 12px; }
 .section-note > span { color: var(--primary); font-size: 24px; font-weight: 700; }
-.stages-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
-.stage-card { color: var(--foreground); background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-soft); transition: transform .2s, box-shadow .2s; }
-.stage-card:hover { transform: translateY(-4px); }
-.stage-art { height: 155px; position: relative; overflow: hidden; background: var(--stage-art); color: var(--stage-art-ink); display: grid; place-items: center; }
-.stage-art:after { content: ''; position: absolute; width: 125%; height: 55px; bottom: -42px; background: var(--card); border-radius: 50%; }
-.stage-number { position: absolute; top: 17px; right: 22px; opacity: .6; font-family: Arial,sans-serif; font-size: 12px; }
-.stage-art-main { display: grid; place-items: center; width: 87px; height: 87px; border-radius: 22px; border: 1px solid color-mix(in oklab, var(--stage-art-ink) 20%, transparent); transform: rotate(-7deg); }
-.stage-art-main svg { width: 56px; height: 56px; }
-.stage-art-small { position: absolute; top: 53px; left: 65px; transform: rotate(12deg); width: 35px; height: 35px; border-radius: 8px; display: grid; place-items: center; background: var(--brand-highlight); color: var(--accent-foreground); box-shadow: var(--shadow-soft); }
-.stage-art-small svg { width: 19px; height: 19px; }
-.stage-spark { position: absolute; right: 76px; top: 40px; width: 22px; }
-.stage-card .stage-art-main { background: var(--brand-accent); color: var(--accent-foreground); }
-.stage-card-body { padding: 23px 25px 25px; }
-.stage-kicker { font-size: 10px; font-weight: 700; color: var(--text-accent, var(--stage-art-ink)); }
-.grade-stage-title .stage-kicker { color: var(--stage-art-ink); }
-.stage-card { --text-accent: var(--stage-art-ink); }
-.stage-card h3 { margin-top: 6px; font-size: 19px; font-weight: 800; line-height: 1.8; }
+.stages-grid, .grade-stage-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.stage-card, .grade-stage { position: relative; display: flex; flex-direction: column; min-width: 0; color: var(--foreground); background: var(--stage-background); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; box-shadow: 0 12px 28px -16px color-mix(in oklab, var(--stage-primary) 55%, transparent); transition: transform .2s, box-shadow .2s; }
+.stage-card:hover, .stage-card:focus-within, .grade-stage:hover, .grade-stage:focus-within { transform: translateY(-4px); box-shadow: 0 18px 34px -16px color-mix(in oklab, var(--stage-primary) 65%, transparent); }
+.stage-card:focus-within, .grade-stage:focus-within { outline: 3px solid var(--stage-primary); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .stage-card, .grade-stage { transition: none; } .stage-card:hover, .stage-card:focus-within, .grade-stage:hover, .grade-stage:focus-within { transform: none; } }
+.stage-art { position: relative; display: grid; place-items: center; height: 150px; background: var(--stage-primary); color: var(--primary-foreground); }
+.stage-icon { width: 72px; height: 72px; }
+.stage-number { position: absolute; top: 12px; inset-inline-start: 16px; font-family: Arial, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: .08em; }
+.stage-card-body { display: flex; flex: 1; flex-direction: column; padding: 20px 18px 54px; }
+.stage-kicker { font-size: 11px; font-weight: 700; color: var(--stage-art-ink); }
+.stage-card h3 { margin-top: 6px; font-size: 17px; font-weight: 800; line-height: 1.8; }
 .stage-range { font-size: 11px; font-weight: 600; margin-top: 2px; color: var(--muted-foreground); }
-.stage-description { margin-top: 16px; font-size: 12px; line-height: 2; color: var(--muted-foreground); min-height: 48px; }
-.stage-highlights { display: grid; grid-template-columns: 1fr; gap: 8px; list-style: none; padding: 0; margin: 19px 0 23px; font-size: 11px; }
+.stage-description { margin-top: 12px; font-size: 12px; line-height: 2; color: var(--muted-foreground); }
+.stage-highlights { display: grid; grid-template-columns: 1fr; gap: 8px; list-style: none; padding: 0; margin: 16px 0 20px; font-size: 11px; }
 .stage-highlights li { display: flex; align-items: center; gap: 8px; }
-.stage-highlights svg { color: var(--stage-art-ink); }
-.stage-button { width: 100%; background: var(--stage-action); color: var(--stage-action-ink); display: flex; justify-content: space-between; }
+.stage-highlights svg { flex-shrink: 0; color: var(--stage-art-ink); }
+.stage-button { width: 100%; margin-top: auto; background: var(--stage-action); color: var(--stage-action-ink); display: flex; justify-content: space-between; }
 .stage-button:hover { background: var(--secondary); color: var(--secondary-foreground); }
+.stage-wave { position: absolute; inset-inline: 0; bottom: 0; display: block; width: 100%; height: 30px; color: var(--stage-secondary); pointer-events: none; }
 .learning-section { background: var(--card); border-block: 1px solid var(--border); padding-block: 60px; }
 .learning-inner { display: grid; grid-template-columns: 1fr 1.2fr; gap: 70px; align-items: center; }
 .learning-inner > div > p { color: var(--muted-foreground); font-size: 13px; line-height: 2; margin-top: 13px; margin-bottom: 22px; }
@@ -219,13 +214,7 @@
 .grade-heading { text-align: center; margin: 30px 0 40px; }
 .grade-heading h1 { font-size: 32px; font-weight: 800; }
 .grade-heading p { font-size: 14px; color: var(--muted-foreground); margin-top: 12px; line-height: 2; }
-.grade-stage-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 23px; }
-.grade-stage { background: var(--card); color: var(--foreground); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-soft); }
 .grade-stage-suggested { outline: 2px solid var(--stage-art-ink); outline-offset: 3px; }
-.grade-stage-title { display: flex; gap: 12px; align-items: center; background: var(--stage-art); padding: 24px 20px; }
-.grade-stage-title h2 { font-size: 15px; font-weight: 700; color: var(--stage-art-ink); margin-top: 5px; }
-.grade-stage-icon { color: var(--stage-art-ink); width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid color-mix(in oklab, var(--stage-art-ink) 30%, transparent); border-radius: 8px; flex-shrink: 0; }
-.grade-options { padding: 24px 20px; display: grid; gap: 12px; }
 .grade-option { justify-content: space-between; height: 50px; background: var(--card); }
 .grade-option-selected { background: var(--secondary); border-color: var(--stage-art-ink); color: var(--secondary-foreground); }
 .grade-confirmation { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 20px; padding: 28px 0; margin-top: 22px; border-bottom: 1px solid var(--border); }
@@ -240,8 +229,6 @@
 @media (max-width: 1050px) {
  .header-inner { gap: 20px; } .desktop-nav { gap: 20px; } .header-start { display: none; }
  .hero-copy { max-width: 450px; } .hero-copy h1 { font-size: 42px; }
- .stage-card-body { padding-inline: 18px; } .stage-card h3 { font-size: 17px; }
- .stage-art-small { left: 38px; } .stage-spark { right: 38px; }
 }
 @media (max-width: 760px) {
  .page-width,.header-inner,.hero-inner,.values-inner,.footer-inner { width: calc(100% - 40px); }
@@ -266,9 +253,6 @@
  .stages-section { padding-block: 38px 42px; } .section-heading { grid-template-columns: 1fr; gap: 8px; margin-bottom: 23px; }
  .section-heading h2,.learning-inner h2 { font-size: 26px; } .section-note { display: none; }
  .section-heading p { font-size: 12px; }
- .stages-grid,.grade-stage-grid { grid-template-columns: 1fr; gap: 22px; }
- .stage-art { height: 145px; } .stage-card-body { padding: 21px 23px 24px; } .stage-card h3 { font-size: 21px; }
- .stage-art-small { left: calc(50% - 105px); } .stage-spark { right: calc(50% - 110px); }
  .stage-description { min-height: auto; } .stage-highlights { grid-template-columns: 1fr; }
  .learning-section { padding-block: 38px; } .learning-inner { grid-template-columns: 1fr; gap: 25px; }
  .learning-values { gap: 24px; }
@@ -520,3 +504,22 @@
 @keyframes kid-talk { to { transform: scaleY(1.1); } }
 @keyframes kid-pulse { 50% { opacity: .3; } }
 @media (prefers-reduced-motion: reduce) { .kid-body, .kid-eyes, .kid-waves path, .kid-mouth { animation: none !important; } [data-state="speaking"] .kid-mouth { transform: scaleY(1); } }
+
+/* Stage cards: five in a row on desktop, three + two centred on tablet, one per row on phones. */
+.grade-stage-title { position: relative; display: flex; gap: 12px; align-items: center; background: var(--stage-primary); color: var(--primary-foreground); padding: 22px 16px; }
+.grade-stage-title .stage-kicker, .grade-stage-title h2 { color: var(--primary-foreground); }
+.grade-stage-title h2 { font-size: 15px; font-weight: 700; margin-top: 5px; }
+.grade-stage-icon { width: 44px; height: 44px; display: grid; place-items: center; flex-shrink: 0; border: 1px solid color-mix(in oklab, var(--primary-foreground) 45%, transparent); border-radius: 10px; color: var(--primary-foreground); }
+.grade-options { flex: 1; display: grid; align-content: start; gap: 12px; padding: 20px 16px 54px; }
+@media (max-width: 1023px) {
+ .stages-grid, .grade-stage-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; }
+ .stages-grid > *, .grade-stage-grid > * { grid-column: span 2; }
+ .stages-grid > :nth-child(4), .grade-stage-grid > :nth-child(4) { grid-column: 2 / span 2; }
+ .stages-grid > :nth-child(5), .grade-stage-grid > :nth-child(5) { grid-column: 4 / span 2; }
+}
+@media (max-width: 767px) {
+ .stages-section.page-width, .grade-page.page-width { width: calc(100% - 32px); }
+ .stages-grid, .grade-stage-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+ .stages-grid > *, .grade-stage-grid > *, .stages-grid > :nth-child(4), .grade-stage-grid > :nth-child(4), .stages-grid > :nth-child(5), .grade-stage-grid > :nth-child(5) { grid-column: auto; }
+ .stage-card h3 { font-size: 20px; }
+}
