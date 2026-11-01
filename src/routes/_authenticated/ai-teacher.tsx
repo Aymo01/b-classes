@@ -50,7 +50,7 @@ function AiTeacherPage() {
 
   return (
     <StudentWorkspace title="معلّمي الصغير" subtitle="صديقك للصفوف من الأول إلى الرابع. الصوت والذكاء الاصطناعي قادمان قريباً.">
-      <div data-theme="elementary" className="kid-teacher">
+      <div data-theme="stage-1" className="kid-teacher">
         <div className="kid-stage" data-state={state}>
           <svg className="kid-character" viewBox="0 0 200 200" role="img" aria-label={`المعلّم: ${stateLabel[state]}`}>
             <ellipse cx="100" cy="186" rx="52" ry="8" className="kid-shadow" />

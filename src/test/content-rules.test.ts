@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { gradeLabel } from '@/lib/grades';
+import { gradeLabel, stages } from '@/lib/grades';
 import { pageMeta } from '@/lib/page-meta';
 
 describe('Grade labels', () => {
@@ -11,6 +11,20 @@ describe('Grade labels', () => {
   it('labels secondary grades distinctly', () => {
     expect(gradeLabel(11)).toBe('الأول الثانوي');
     expect(gradeLabel(12)).toBe('الثاني الثانوي');
+  });
+  it('names the two single-grade secondary stages after their grade', () => {
+    const byId = Object.fromEntries(stages.map((s) => [s.id, s]));
+    expect(byId['stage-4']?.range).toBe(gradeLabel(11));
+    expect(byId['stage-5']?.range).toBe(gradeLabel(12));
+  });
+  it('gives every one of the five stages a title, description, range and three highlights', () => {
+    expect(stages).toHaveLength(5);
+    for (const stage of stages) {
+      expect(stage.title.length).toBeGreaterThan(0);
+      expect(stage.description.length).toBeGreaterThan(0);
+      expect(stage.range.length).toBeGreaterThan(0);
+      expect(stage.highlights).toHaveLength(3);
+    }
   });
 });
 

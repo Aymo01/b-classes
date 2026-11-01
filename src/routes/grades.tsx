@@ -7,7 +7,7 @@ import { useSession } from '@/lib/session';
 import { gradeLabel, stages, themeForGrade, type Grade, type Stage } from '@/lib/grades';
 
 export const Route = createFileRoute('/grades')({
-  validateSearch: (search: Record<string, unknown>): { stage?: Stage | undefined } => ({ stage: search['stage'] === 'elementary' || search['stage'] === 'middle' || search['stage'] === 'secondary' ? search['stage'] : undefined }),
+  validateSearch: (search: Record<string, unknown>): { stage?: Stage | undefined } => ({ stage: stages.find((s) => s.id === search['stage'])?.id }),
   head: () => ({ meta: [
     { title: 'اختر صفك الدراسي | B classes' },
     { name: 'description', content: 'اختر صفك الدراسي من الأول إلى العاشر أو الأول والثاني الثانوي لتحديد مرحلتك في B classes.' },

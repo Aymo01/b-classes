@@ -56,8 +56,8 @@ export function DashboardDesign() {
   const completedIds = new Set((completions ?? []).map((c) => c.lessonId));
   const nextLesson = (lessons ?? []).find((l) => !completedIds.has(l.id));
 
-  return <StudentWorkspace title={theme === 'elementary' ? 'جاهز لاكتشاف شيء جديد؟' : theme === 'secondary' ? 'خطوتك التالية نحو طموحك.' : 'أهلًا بك في رحلة التعلّم.'} subtitle="مساحة تجمع خطوتك القادمة وما أنجزته في رحلتك.">
-    <section className="student-welcome"><div><span className="welcome-label">بداية جديدة</span><h2>{theme === 'elementary' ? 'كل سؤال، مغامرة صغيرة.' : 'كل يوم فرصة لتتقدّم.'}</h2><p>ابدأ من موادك الدراسية، وخذ خطوتك التالية بثقة.</p><Button asChild><Link to="/subjects">استكشف موادي<ArrowLeft /></Link></Button></div><span className="welcome-illustration" aria-hidden="true">{theme === 'elementary' ? <Waves /> : <GraduationCap />}</span></section>
+  return <StudentWorkspace title={theme === 'stage-1' ? 'جاهز لاكتشاف شيء جديد؟' : theme === 'stage-4' || theme === 'stage-5' ? 'خطوتك التالية نحو طموحك.' : 'أهلًا بك في رحلة التعلّم.'} subtitle="مساحة تجمع خطوتك القادمة وما أنجزته في رحلتك.">
+    <section className="student-welcome"><div><span className="welcome-label">بداية جديدة</span><h2>{theme === 'stage-1' ? 'كل سؤال، مغامرة صغيرة.' : 'كل يوم فرصة لتتقدّم.'}</h2><p>ابدأ من موادك الدراسية، وخذ خطوتك التالية بثقة.</p><Button asChild><Link to="/subjects">استكشف موادي<ArrowLeft /></Link></Button></div><span className="welcome-illustration" aria-hidden="true">{theme === 'stage-1' ? <Waves /> : <GraduationCap />}</span></section>
     {isLoading ? <LoadingState /> : (
       <div className="study-metrics">
         <div className="study-metric"><span><BookOpen /></span><p>دروسي المكتملة</p><strong>{data ? `${data.lessonsCompleted} / ${data.lessonsTotal}` : '—'}</strong><small>{data && data.lessonsTotal > 0 ? 'من دروس صفك' : 'لا توجد بيانات بعد'}</small></div>
