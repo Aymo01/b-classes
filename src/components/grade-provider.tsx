@@ -33,6 +33,6 @@ export function GradeProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  return <GradeContext.Provider value={{ grade, selectGrade }}><div data-theme={themeForGrade(grade) ?? 'elementary'} className="platform-shell">{children}</div></GradeContext.Provider>;
+  return <GradeContext.Provider value={{ grade, selectGrade }}><div data-theme={themeForGrade(grade) ?? 'stage-1'} className="platform-shell">{children}</div></GradeContext.Provider>;
 }
 export function useGrade() { return useContext(GradeContext); }
