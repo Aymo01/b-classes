@@ -520,3 +520,39 @@
 @keyframes kid-talk { to { transform: scaleY(1.1); } }
 @keyframes kid-pulse { 50% { opacity: .3; } }
 @media (prefers-reduced-motion: reduce) { .kid-body, .kid-eyes, .kid-waves path, .kid-mouth { animation: none !important; } [data-state="speaking"] .kid-mouth { transform: scaleY(1); } }
+
+/* Games area. Uses the stage tokens only; every target is at least 44px. */
+.game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.game-tile { display: grid; align-content: start; gap: 8px; min-height: 44px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; box-shadow: var(--shadow-soft); color: var(--foreground); text-decoration: none; transition: border-color .15s; }
+.game-tile:hover, .game-tile:focus-visible { border-color: var(--primary); outline: 3px solid var(--select-tint); }
+.game-tile strong { font-size: 16px; color: var(--primary); }
+.game-tile-icon { width: 52px; height: 52px; border-radius: 14px; background: var(--accent); color: var(--accent-foreground); display: grid; place-items: center; }
+.game-tile-icon svg { width: 28px; height: 28px; }
+.game-tile-text { font-size: 12px; color: var(--muted-foreground); }
+.game-tile-subjects { font-size: 11px; font-weight: 700; color: var(--foreground); }
+.game-soon { width: fit-content; background: var(--select-tint); color: var(--primary); }
+.game-panel { display: grid; gap: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.game-status { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 12px; font-weight: 700; color: var(--primary); }
+.game-prompt { font-size: 18px; font-weight: 800; }
+.game-options, .game-column { display: grid; gap: 10px; }
+.game-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.game-option { min-height: 48px; height: auto; justify-content: flex-start; white-space: normal; text-align: start; }
+.game-option-correct { border-color: var(--success); border-width: 2px; }
+.game-option-wrong { border-color: var(--destructive); border-width: 2px; border-style: dashed; }
+.game-tag { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; }
+.game-feedback { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; }
+.game-feedback-ok { color: var(--success); }
+.game-feedback-bad { color: var(--destructive); }
+.game-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+.game-flip { min-height: 72px; height: auto; white-space: normal; font-size: 14px; }
+.game-answer { list-style: none; margin: 0; padding: 10px; display: flex; flex-wrap: wrap; gap: 8px; min-height: 64px; border: 2px dashed var(--border); border-radius: 10px; }
+.game-answer-empty { font-size: 12px; color: var(--muted-foreground); align-self: center; }
+.game-chips, .game-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.game-pos { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--primary); color: var(--primary-foreground); font-size: 11px; }
+.game-card { display: grid; gap: 10px; min-height: 140px; align-content: center; text-align: center; background: var(--select-tint); border-radius: 12px; padding: 22px; }
+.game-card-back { font-size: 16px; font-weight: 700; color: var(--primary); }
+.game-garden { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; color: var(--primary); font-weight: 700; }
+.game-word { display: inline-block; min-height: 44px; line-height: 44px; padding-inline: 14px; border-radius: 8px; background: var(--select-tint); font-weight: 800; }
+.game-ladder-form { display: grid; gap: 10px; }
+.game-input { min-height: 44px; border: 1px solid var(--border); border-radius: 8px; padding-inline: 12px; background: var(--background); color: var(--foreground); font-size: 16px; }
+@media (max-width: 640px) { .game-columns { grid-template-columns: 1fr; } .game-panel { padding: 14px; } }

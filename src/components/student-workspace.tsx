@@ -1,13 +1,15 @@
 import { Link } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Bell, BookOpen, CalendarDays, Check, CheckCircle2, ClipboardList, FileQuestion, GraduationCap, LayoutGrid, Lightbulb, Loader2, Play, Search, Target, Trophy, UserRound, Smile, Video, Waves } from 'lucide-react';
+import { ArrowLeft, Bell, Gamepad2, BookOpen, CalendarDays, Check, CheckCircle2, ClipboardList, FileQuestion, GraduationCap, LayoutGrid, Lightbulb, Loader2, Play, Search, Target, Trophy, UserRound, Smile, Video, Waves } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useGrade } from '@/components/grade-provider';
 import { useSession } from '@/lib/session';
 import { gradeLabel, themeForGrade } from '@/lib/grades';
 import { getMyProfile, getStudentOverview, updateMyProfile } from '@/lib/profile.functions';
+import { GameSessionList } from '@/components/games/session-list';
+import { listMyGameSessions } from '@/lib/games.functions';
 import { listAssignments, listClasses, listLessons, listMyCompletions, listMyQuizAttempts, listMySubmissions, listQuizzes, listSubjects } from '@/lib/content.functions';
 
 export const studentNavigation = [
@@ -17,6 +19,7 @@ export const studentNavigation = [
   { to: '/classes', title: 'الحصص', icon: Video },
   { to: '/assignments', title: 'الواجبات', icon: ClipboardList },
   { to: '/quizzes', title: 'الاختبارات', icon: FileQuestion },
+  { to: '/games', title: 'الألعاب', icon: Gamepad2 },
   { to: '/study-coach', title: 'مرشدي الدراسي', icon: Lightbulb },
   { to: '/ai-teacher', title: 'معلّمي الصغير', icon: Smile },
   { to: '/progress', title: 'تقدّمي', icon: Target },
@@ -55,6 +58,7 @@ export function DashboardDesign() {
   const { data: completions } = useQuery({ queryKey: ['completions'], queryFn: () => listMyCompletions(), enabled: !!user });
   const completedIds = new Set((completions ?? []).map((c) => c.lessonId));
   const nextLesson = (lessons ?? []).find((l) => !completedIds.has(l.id));
+  const { data: gameSessions } = useQuery({ queryKey: ['game-sessions', 'recent', user?.id], queryFn: () => listMyGameSessions({ data: { limit: 5 } }), enabled: !!user });
 
   return <StudentWorkspace title={theme === 'stage-1' ? 'جاهز لاكتشاف شيء جديد؟' : theme === 'stage-4' || theme === 'stage-5' ? 'خطوتك التالية نحو طموحك.' : 'أهلًا بك في رحلة التعلّم.'} subtitle="مساحة تجمع خطوتك القادمة وما أنجزته في رحلتك.">
     <section className="student-welcome"><div><span className="welcome-label">بداية جديدة</span><h2>{theme === 'stage-1' ? 'كل سؤال، مغامرة صغيرة.' : 'كل يوم فرصة لتتقدّم.'}</h2><p>ابدأ من موادك الدراسية، وخذ خطوتك التالية بثقة.</p><Button asChild><Link to="/subjects">استكشف موادي<ArrowLeft /></Link></Button></div><span className="welcome-illustration" aria-hidden="true">{theme === 'stage-1' ? <Waves /> : <GraduationCap />}</span></section>
@@ -73,6 +77,8 @@ export function DashboardDesign() {
         {data && data.upcomingClasses.length > 0 ? <div className="content-list">{data.upcomingClasses.map((c) => <div className="content-card" key={c.id}><div><span className="content-card-kicker">{c.subjectTitle}</span><h3>{c.title}</h3><p>{new Date(c.scheduledAt).toLocaleString('ar', { dateStyle: 'medium', timeStyle: 'short' })}</p></div></div>)}</div>
           : <EmptyState icon={CalendarDays} title="جدولك هادئ الآن" text="لا توجد حصص مجدولة بعد." />}</section>
     </div>
+    <section><div className="study-section-title"><h2>نتائج ألعابي</h2><Button variant="link" asChild><Link to="/games">كل الألعاب<ArrowLeft /></Link></Button></div>
+      <GameSessionList sessions={gameSessions ?? []} /></section>
     <nav className="study-shortcuts" aria-label="روابط سريعة">{[{ to: '/assignments', title: 'واجباتي', icon: ClipboardList },{ to: '/quizzes', title: 'اختبر معرفتك', icon: FileQuestion },{ to: '/progress', title: 'رحلة إنجازك', icon: Trophy }].map(({to,title,icon:Icon}) => <Button variant="outline" asChild key={to}><Link to={to as '/assignments' | '/quizzes' | '/progress'}><Icon />{title}<ArrowLeft /></Link></Button>)}</nav>
   </StudentWorkspace>;
 }

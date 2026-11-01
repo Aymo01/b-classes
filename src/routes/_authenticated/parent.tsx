@@ -1,7 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { BookOpen, CheckCircle2, ClipboardList, FileQuestion, Link2, Loader2, Users } from 'lucide-react';
+import { GameSessionList } from '@/components/games/session-list';
+import { getChildGameSessions } from '@/lib/games.functions';
+import { BookOpen, CheckCircle2, ClipboardList, FileQuestion, Gamepad2, Link2, Loader2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState, StudentWorkspace } from '@/components/student-workspace';
@@ -31,6 +33,12 @@ function ParentPage() {
   const { data: overview } = useQuery({
     queryKey: ['overview', activeChild],
     queryFn: () => getStudentOverview({ data: { studentId: activeChild! } }),
+    enabled: !!activeChild,
+  });
+
+  const { data: childGames } = useQuery({
+    queryKey: ['game-sessions', 'child', activeChild],
+    queryFn: () => getChildGameSessions({ data: { studentId: activeChild! } }),
     enabled: !!activeChild,
   });
 
@@ -96,6 +104,8 @@ function ParentPage() {
                   {overview.recentAttempts.length > 0 ? <div className="content-list">{overview.recentAttempts.map((a) => <div className="content-card" key={a.id}><div><h3>{a.title}</h3><p>النتيجة: {a.score} من {a.total}</p></div></div>)}</div>
                     : <EmptyState icon={FileQuestion} title="لا توجد اختبارات بعد" text="ستظهر نتائج الاختبارات هنا." />}</section>
               </div>
+              <section><div className="study-section-title"><h2>نتائج الألعاب</h2><Gamepad2 size={20} /></div>
+                <GameSessionList sessions={childGames ?? []} /></section>
             </>
           ) : (
             <div className="study-empty" role="status"><Loader2 className="animate-spin" size={28} /><p>جارٍ تحميل التقدّم...</p></div>

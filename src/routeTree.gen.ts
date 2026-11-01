@@ -24,6 +24,7 @@ import { Route as AuthenticatedAiTeacherRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAssignmentsRouteImport } from './routes/_authenticated/assignments'
 import { Route as AuthenticatedClassesRouteImport } from './routes/_authenticated/classes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedGamesRouteImport } from './routes/_authenticated/games'
 import { Route as AuthenticatedLessonsRouteImport } from './routes/_authenticated/lessons'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedParentRouteImport } from './routes/_authenticated/parent'
@@ -35,6 +36,8 @@ import { Route as AuthenticatedSubjectsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedTeacherRouteImport } from './routes/_authenticated/teacher'
 import { Route as AuthenticatedAssignmentsIndexRouteImport } from './routes/_authenticated/assignments.index'
 import { Route as AuthenticatedAssignmentsAssignmentIdRouteImport } from './routes/_authenticated/assignments.$assignmentId'
+import { Route as AuthenticatedGamesIndexRouteImport } from './routes/_authenticated/games.index'
+import { Route as AuthenticatedGamesSlugRouteImport } from './routes/_authenticated/games.$slug'
 import { Route as AuthenticatedLessonsIndexRouteImport } from './routes/_authenticated/lessons.index'
 import { Route as AuthenticatedLessonsLessonIdRouteImport } from './routes/_authenticated/lessons.$lessonId'
 import { Route as AuthenticatedQuizzesIndexRouteImport } from './routes/_authenticated/quizzes.index'
@@ -116,6 +119,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGamesRoute = AuthenticatedGamesRouteImport.update({
+  id: '/games',
+  path: '/games',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedLessonsRoute = AuthenticatedLessonsRouteImport.update({
   id: '/lessons',
   path: '/lessons',
@@ -174,6 +182,16 @@ const AuthenticatedAssignmentsAssignmentIdRoute =
     path: '/$assignmentId',
     getParentRoute: () => AuthenticatedAssignmentsRoute,
   } as any)
+const AuthenticatedGamesIndexRoute = AuthenticatedGamesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedGamesRoute,
+} as any)
+const AuthenticatedGamesSlugRoute = AuthenticatedGamesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => AuthenticatedGamesRoute,
+} as any)
 const AuthenticatedLessonsIndexRoute =
   AuthenticatedLessonsIndexRouteImport.update({
     id: '/',
@@ -220,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/assignments': typeof AuthenticatedAssignmentsRouteWithChildren
   '/classes': typeof AuthenticatedClassesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/games': typeof AuthenticatedGamesRouteWithChildren
   '/lessons': typeof AuthenticatedLessonsRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/parent': typeof AuthenticatedParentRoute
@@ -230,9 +249,11 @@ export interface FileRoutesByFullPath {
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/teacher': typeof AuthenticatedTeacherRoute
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
+  '/games/$slug': typeof AuthenticatedGamesSlugRoute
   '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/quizzes/$quizId': typeof AuthenticatedQuizzesQuizIdRouteWithChildren
   '/assignments/': typeof AuthenticatedAssignmentsIndexRoute
+  '/games/': typeof AuthenticatedGamesIndexRoute
   '/lessons/': typeof AuthenticatedLessonsIndexRoute
   '/quizzes/': typeof AuthenticatedQuizzesIndexRoute
   '/quizzes/$quizId/results': typeof AuthenticatedQuizzesQuizIdResultsRoute
@@ -259,9 +280,11 @@ export interface FileRoutesByTo {
   '/subjects': typeof AuthenticatedSubjectsRoute
   '/teacher': typeof AuthenticatedTeacherRoute
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
+  '/games/$slug': typeof AuthenticatedGamesSlugRoute
   '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/quizzes/$quizId': typeof AuthenticatedQuizzesQuizIdRouteWithChildren
   '/assignments': typeof AuthenticatedAssignmentsIndexRoute
+  '/games': typeof AuthenticatedGamesIndexRoute
   '/lessons': typeof AuthenticatedLessonsIndexRoute
   '/quizzes': typeof AuthenticatedQuizzesIndexRoute
   '/quizzes/$quizId/results': typeof AuthenticatedQuizzesQuizIdResultsRoute
@@ -283,6 +306,7 @@ export interface FileRoutesById {
   '/_authenticated/assignments': typeof AuthenticatedAssignmentsRouteWithChildren
   '/_authenticated/classes': typeof AuthenticatedClassesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/games': typeof AuthenticatedGamesRouteWithChildren
   '/_authenticated/lessons': typeof AuthenticatedLessonsRouteWithChildren
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/parent': typeof AuthenticatedParentRoute
@@ -293,9 +317,11 @@ export interface FileRoutesById {
   '/_authenticated/subjects': typeof AuthenticatedSubjectsRoute
   '/_authenticated/teacher': typeof AuthenticatedTeacherRoute
   '/_authenticated/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
+  '/_authenticated/games/$slug': typeof AuthenticatedGamesSlugRoute
   '/_authenticated/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/_authenticated/quizzes/$quizId': typeof AuthenticatedQuizzesQuizIdRouteWithChildren
   '/_authenticated/assignments/': typeof AuthenticatedAssignmentsIndexRoute
+  '/_authenticated/games/': typeof AuthenticatedGamesIndexRoute
   '/_authenticated/lessons/': typeof AuthenticatedLessonsIndexRoute
   '/_authenticated/quizzes/': typeof AuthenticatedQuizzesIndexRoute
   '/_authenticated/quizzes/$quizId/results': typeof AuthenticatedQuizzesQuizIdResultsRoute
@@ -317,6 +343,7 @@ export interface FileRouteTypes {
     | '/assignments'
     | '/classes'
     | '/dashboard'
+    | '/games'
     | '/lessons'
     | '/notifications'
     | '/parent'
@@ -327,9 +354,11 @@ export interface FileRouteTypes {
     | '/subjects'
     | '/teacher'
     | '/assignments/$assignmentId'
+    | '/games/$slug'
     | '/lessons/$lessonId'
     | '/quizzes/$quizId'
     | '/assignments/'
+    | '/games/'
     | '/lessons/'
     | '/quizzes/'
     | '/quizzes/$quizId/results'
@@ -356,9 +385,11 @@ export interface FileRouteTypes {
     | '/subjects'
     | '/teacher'
     | '/assignments/$assignmentId'
+    | '/games/$slug'
     | '/lessons/$lessonId'
     | '/quizzes/$quizId'
     | '/assignments'
+    | '/games'
     | '/lessons'
     | '/quizzes'
     | '/quizzes/$quizId/results'
@@ -379,6 +410,7 @@ export interface FileRouteTypes {
     | '/_authenticated/assignments'
     | '/_authenticated/classes'
     | '/_authenticated/dashboard'
+    | '/_authenticated/games'
     | '/_authenticated/lessons'
     | '/_authenticated/notifications'
     | '/_authenticated/parent'
@@ -389,9 +421,11 @@ export interface FileRouteTypes {
     | '/_authenticated/subjects'
     | '/_authenticated/teacher'
     | '/_authenticated/assignments/$assignmentId'
+    | '/_authenticated/games/$slug'
     | '/_authenticated/lessons/$lessonId'
     | '/_authenticated/quizzes/$quizId'
     | '/_authenticated/assignments/'
+    | '/_authenticated/games/'
     | '/_authenticated/lessons/'
     | '/_authenticated/quizzes/'
     | '/_authenticated/quizzes/$quizId/results'
@@ -518,6 +552,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/games': {
+      id: '/_authenticated/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof AuthenticatedGamesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/lessons': {
       id: '/_authenticated/lessons'
       path: '/lessons'
@@ -595,6 +636,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssignmentsAssignmentIdRouteImport
       parentRoute: typeof AuthenticatedAssignmentsRoute
     }
+    '/_authenticated/games/': {
+      id: '/_authenticated/games/'
+      path: '/'
+      fullPath: '/games/'
+      preLoaderRoute: typeof AuthenticatedGamesIndexRouteImport
+      parentRoute: typeof AuthenticatedGamesRoute
+    }
+    '/_authenticated/games/$slug': {
+      id: '/_authenticated/games/$slug'
+      path: '/$slug'
+      fullPath: '/games/$slug'
+      preLoaderRoute: typeof AuthenticatedGamesSlugRouteImport
+      parentRoute: typeof AuthenticatedGamesRoute
+    }
     '/_authenticated/lessons/': {
       id: '/_authenticated/lessons/'
       path: '/'
@@ -650,6 +705,19 @@ const AuthenticatedAssignmentsRouteWithChildren =
     AuthenticatedAssignmentsRouteChildren,
   )
 
+interface AuthenticatedGamesRouteChildren {
+  AuthenticatedGamesSlugRoute: typeof AuthenticatedGamesSlugRoute
+  AuthenticatedGamesIndexRoute: typeof AuthenticatedGamesIndexRoute
+}
+
+const AuthenticatedGamesRouteChildren: AuthenticatedGamesRouteChildren = {
+  AuthenticatedGamesSlugRoute: AuthenticatedGamesSlugRoute,
+  AuthenticatedGamesIndexRoute: AuthenticatedGamesIndexRoute,
+}
+
+const AuthenticatedGamesRouteWithChildren =
+  AuthenticatedGamesRoute._addFileChildren(AuthenticatedGamesRouteChildren)
+
 interface AuthenticatedLessonsRouteChildren {
   AuthenticatedLessonsLessonIdRoute: typeof AuthenticatedLessonsLessonIdRoute
   AuthenticatedLessonsIndexRoute: typeof AuthenticatedLessonsIndexRoute
@@ -696,6 +764,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssignmentsRoute: typeof AuthenticatedAssignmentsRouteWithChildren
   AuthenticatedClassesRoute: typeof AuthenticatedClassesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedGamesRoute: typeof AuthenticatedGamesRouteWithChildren
   AuthenticatedLessonsRoute: typeof AuthenticatedLessonsRouteWithChildren
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedParentRoute: typeof AuthenticatedParentRoute
@@ -712,6 +781,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssignmentsRoute: AuthenticatedAssignmentsRouteWithChildren,
   AuthenticatedClassesRoute: AuthenticatedClassesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedGamesRoute: AuthenticatedGamesRouteWithChildren,
   AuthenticatedLessonsRoute: AuthenticatedLessonsRouteWithChildren,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedParentRoute: AuthenticatedParentRoute,
