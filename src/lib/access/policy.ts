@@ -42,5 +42,10 @@ export function resolveAccess(facts: AccessFacts): AccessResult {
   if (facts.isAdmin) roles.push('admin');
   if (facts.teacher && teacherEmailMatches(facts.teacher, facts.email)) roles.push('teacher');
   if (facts.allowlistRole) roles.push(facts.allowlistRole);
+  // Stored roles count too, but a teacher role only counts when the issued school email is the one signed in.
+  for (const role of facts.roles ?? []) {
+    if (role === 'teacher' && !roles.includes('teacher')) continue;
+    if (!roles.includes(role)) roles.push(role);
+  }
   return { status: roles.length > 0 ? 'approved' : 'pending', roles, email: normalizeEmail(facts.email) };
 }

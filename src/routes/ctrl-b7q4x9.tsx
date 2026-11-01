@@ -7,6 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { StudentWorkspace } from '@/components/student-workspace';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ConfigTable } from '@/components/admin/config-table';
+import { ContentPanel } from '@/components/admin/content-panel';
+import { FamiliesPanel } from '@/components/admin/families-panel';
+import { LivePanel } from '@/components/admin/live-panel';
+import { SubscriptionsPanel } from '@/components/admin/subscriptions-panel';
 import {
   addStudentAllowlist,
   addTeacher,
@@ -251,11 +257,42 @@ function PendingSection() {
 
 function AdminPage() {
   return (
-    <StudentWorkspace title="لوحة الإدارة" subtitle="أدر المعلمين والطلاب وأولياء الأمور وطلبات التسجيل.">
-      <FirstAdminNote />
-      <TeachersSection />
-      <AllowlistSection />
-      <PendingSection />
+    <StudentWorkspace title="لوحة الإدارة" subtitle="الاشتراكات والأسعار والخصومات والجلسات المباشرة والمحتوى والمعلمون، كلها من هنا بلا تعديل في الكود.">
+      <Tabs defaultValue="subscriptions" dir="rtl">
+        <TabsList className="teacher-tabs">
+          <TabsTrigger value="subscriptions">الاشتراكات والتقارير</TabsTrigger>
+          <TabsTrigger value="prices">الأسعار والفصول</TabsTrigger>
+          <TabsTrigger value="discounts">الخصومات والعروض</TabsTrigger>
+          <TabsTrigger value="live">الجلسات المباشرة</TabsTrigger>
+          <TabsTrigger value="content">المحتوى والفيديو</TabsTrigger>
+          <TabsTrigger value="families">أولياء الأمور</TabsTrigger>
+          <TabsTrigger value="access">المعلمون والوصول</TabsTrigger>
+        </TabsList>
+        <TabsContent value="subscriptions"><SubscriptionsPanel /></TabsContent>
+        <TabsContent value="prices">
+          <div className="admin-stack">
+            <ConfigTable table="full_plan_prices" />
+            <ConfigTable table="subject_plan_prices" />
+            <ConfigTable table="academic_periods" />
+          </div>
+        </TabsContent>
+        <TabsContent value="discounts">
+          <div className="admin-stack">
+            <ConfigTable table="sibling_discounts" />
+            <ConfigTable table="offers" />
+            <ConfigTable table="app_settings" />
+          </div>
+        </TabsContent>
+        <TabsContent value="live"><LivePanel /></TabsContent>
+        <TabsContent value="content"><ContentPanel /></TabsContent>
+        <TabsContent value="families"><FamiliesPanel /></TabsContent>
+        <TabsContent value="access">
+          <FirstAdminNote />
+          <TeachersSection />
+          <AllowlistSection />
+          <PendingSection />
+        </TabsContent>
+      </Tabs>
     </StudentWorkspace>
   );
 }

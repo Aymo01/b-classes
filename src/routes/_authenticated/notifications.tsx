@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { Bell, BellRing, ClipboardList, FileQuestion, Loader2, Play, Video } from 'lucide-react';
+import { Bell, BellRing, ClipboardList, CreditCard, FileQuestion, Loader2, Play, Video } from 'lucide-react';
 import { EmptyState, StudentWorkspace } from '@/components/student-workspace';
 import { listNotifications, markNotificationsRead } from '@/lib/content.functions';
 import { pageMeta } from '@/lib/page-meta';
@@ -16,6 +16,7 @@ const kindIcons: Record<string, typeof Bell> = {
   assignment: ClipboardList,
   quiz: FileQuestion,
   class: Video,
+  subscription: CreditCard,
 };
 
 function NotificationsPage() {

@@ -343,6 +343,52 @@
 .status-done { background: color-mix(in oklab, var(--success) 12%, transparent); color: var(--success); }
 .status-wrong { background: color-mix(in oklab, var(--destructive) 10%, transparent); color: var(--destructive); }
 
+/* ===== Subscriptions, family, admin ===== */
+.status-active, .status-live-accepted, .status-live-completed { background: color-mix(in oklab, var(--success) 12%, transparent); color: var(--success); }
+.status-pending, .status-upcoming, .status-live-pending { background: var(--muted); color: var(--muted-foreground); }
+.status-expiring { background: color-mix(in oklab, var(--primary) 14%, transparent); color: var(--primary); }
+.status-expired, .status-cancelled, .status-live-cancelled { background: color-mix(in oklab, var(--destructive) 10%, transparent); color: var(--destructive); }
+.form-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.family-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 14px; margin-block: 14px; }
+.family-child { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.family-child h3 { font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
+.family-child p { font-size: 12px; color: var(--muted-foreground); }
+.family-child-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+.family-child-actions { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.plan-card { display: grid; gap: 10px; border-top: 1px dashed var(--border); padding-top: 12px; }
+.plan-card-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.price-lines { display: grid; gap: 6px; margin: 0; }
+.price-lines > div { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+.price-lines dt { color: var(--muted-foreground); overflow-wrap: anywhere; } .price-lines dd { margin: 0; font-weight: 700; white-space: nowrap; }
+.price-struck { text-decoration: line-through; color: var(--muted-foreground); font-weight: 500 !important; }
+.price-final { border-top: 1px solid var(--border); padding-top: 8px; font-size: 15px !important; } .price-final dt { color: var(--foreground); font-weight: 800; }
+.order-summary { max-width: 520px; }
+.plan-warning { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--primary); background: color-mix(in oklab, var(--primary) 8%, transparent); border: 1px solid color-mix(in oklab, var(--primary) 25%, transparent); border-radius: 8px; padding: 10px 12px; margin-block: 8px; }
+.plan-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.plan-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; min-width: 0; }
+.plan-item > div:first-child { min-width: 0; flex: 1; }
+.plan-item h3 { font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+.plan-item p { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 4px; font-size: 12px; color: var(--muted-foreground); }
+.plan-meta { display: inline-flex; align-items: center; gap: 4px; }
+.admin-stack { display: grid; gap: 16px; margin-top: 16px; }
+.admin-config-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.admin-rows { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.admin-row { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; min-width: 0; }
+.admin-row dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px 14px; margin: 0; flex: 1; min-width: 0; }
+.admin-row dt { font-size: 10px; color: var(--muted-foreground); } .admin-row dd { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
+.admin-row-actions { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+.admin-row-actions-wrap { flex-wrap: wrap; justify-content: flex-end; max-width: 320px; }
+.admin-datetime { width: 190px; }
+.admin-check { display: inline-flex; align-items: center; gap: 8px; } .admin-checks { display: flex; flex-wrap: wrap; gap: 12px; }
+.file-input { font-size: 12px; max-width: 100%; }
+.break-words { overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .plan-item, .admin-row { flex-direction: column; align-items: stretch; }
+  .admin-row-actions, .admin-row-actions-wrap { max-width: none; justify-content: flex-start; }
+  .admin-datetime { width: 100%; }
+  .order-summary { max-width: none; }
+}
+
 /* ===== Lesson page ===== */
 .lesson-player { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: oklch(0.2 0.02 280); box-shadow: var(--shadow-soft); }
 .lesson-video { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; }

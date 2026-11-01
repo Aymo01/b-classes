@@ -32,6 +32,8 @@ export type AccessFacts = {
   isAdmin: boolean;
   teacher: TeacherAccount | null;
   allowlistRole: AllowlistRole | null;
+  /** Roles stored in user_roles (a parent role is granted at sign-up). */
+  roles?: AppRole[];
 };
 
 export type AccessResult = {

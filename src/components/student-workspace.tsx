@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Bell, BookOpen, CalendarDays, Check, CheckCircle2, ClipboardList, FileQuestion, GraduationCap, LayoutGrid, Lightbulb, Loader2, Play, Search, Target, Trophy, UserRound, Smile, Video, Waves } from 'lucide-react';
+import { ArrowLeft, Bell, BookOpen, CalendarDays, Check, CheckCircle2, ClipboardList, FileQuestion, GraduationCap, LayoutGrid, Lightbulb, Loader2, Play, Search, Target, Trophy, UserRound, Users, Smile, Video, Waves } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useGrade } from '@/components/grade-provider';
@@ -12,6 +12,8 @@ import { listAssignments, listClasses, listLessons, listMyCompletions, listMyQui
 
 export const studentNavigation = [
   { to: '/dashboard', title: 'مساحتي', icon: LayoutGrid },
+  { to: '/family', title: 'عائلتي واشتراكاتي', icon: Users },
+  { to: '/live', title: 'جلسات مباشرة', icon: Video },
   { to: '/subjects', title: 'المواد الدراسية', icon: BookOpen },
   { to: '/lessons', title: 'الدروس', icon: Play },
   { to: '/classes', title: 'الحصص', icon: Video },

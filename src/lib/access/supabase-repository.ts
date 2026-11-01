@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { AccessRepository, AllowlistEntry, AllowlistRole, PendingSignup, TeacherAccount } from './types';
+import type { AccessRepository, AllowlistEntry, AllowlistRole, AppRole, PendingSignup, TeacherAccount } from './types';
 import { normalizeEmail } from './policy';
 
 /**
@@ -35,11 +35,15 @@ export function createSupabaseAccessRepository(client: SupabaseClient): AccessRe
       } catch {
         throw new Error('access-check-failed');
       }
+      // Roles stored for this user (a parent role is granted at sign-up). RLS lets users read their own.
+      const { data: roleRows } = await db.from('user_roles').select('role');
+      const roles = (roleRows ?? []).map((r: Row) => String(r['role'])).filter((r: string): r is AppRole => ['student', 'parent', 'teacher', 'admin'].includes(r));
       return {
         email: normalizeEmail(email),
         isAdmin: Boolean(d['is_admin']),
         teacher: d['teacher'] ? toTeacher(d['teacher'] as Row) : null,
         allowlistRole: (d['allowlist_role'] as AllowlistRole | null) ?? null,
+        roles,
       };
     },
 

@@ -62,7 +62,7 @@ export const listLessons = createServerFn({ method: 'GET' })
   .handler(async ({ data, context }) => {
     let query = context.supabase
       .from('lessons')
-      .select('id, title, description, video_url, notes, order_index, subject:subjects(id, title, grade)')
+      .select('id, title, description, notes, order_index, subject:subjects(id, title, grade)')
       .order('order_index');
     if (data?.grade) query = query.eq('subjects.grade', data.grade);
     const { data: lessons } = await query;
@@ -70,7 +70,8 @@ export const listLessons = createServerFn({ method: 'GET' })
       id: l.id,
       title: l.title,
       description: l.description,
-      videoUrl: l.video_url,
+      // Video files are never part of a lesson row sent to the browser: see getLessonVideo.
+      videoUrl: null,
       notes: l.notes,
       orderIndex: l.order_index,
       subject: l.subject ? { id: l.subject.id, title: l.subject.title, grade: l.subject.grade } : null,
@@ -83,15 +84,16 @@ export const getLesson = createServerFn({ method: 'GET' })
   .handler(async ({ data, context }) => {
     const { data: lesson } = await context.supabase
       .from('lessons')
-      .select('id, title, description, video_url, notes, order_index, subject:subjects(id, title, grade)')
+      .select('id, title, description, notes, order_index, subject:subjects(id, title, grade)')
       .eq('id', data.lessonId)
       .maybeSingle();
-    if (!lesson) throw new Error('الدرس غير موجود');
+    // Lessons are only visible to staff and to parents with a covering active subscription.
+    if (!lesson) throw new Error('هذا الدرس يحتاج اشتراكًا نشطًا يشمل مادته، أو أنه غير موجود.');
     return {
       id: lesson.id,
       title: lesson.title,
       description: lesson.description,
-      videoUrl: lesson.video_url,
+      videoUrl: null,
       notes: lesson.notes,
       orderIndex: lesson.order_index,
       subject: lesson.subject ? { id: lesson.subject.id, title: lesson.subject.title, grade: lesson.subject.grade } : null,
