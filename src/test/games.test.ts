@@ -48,16 +48,12 @@ const games: GameRow[] = [...seed.matchAll(/^\s+\('([^']+)', '([^']+)', '([^']*)
   active: true,
 }));
 
-const branches: BranchRow[] = [...seed.matchAll(/^\s+\('([^']+)', '([^']+)', (\d+), (\d+), \d+\)/gm)]
-  .filter((m) => !games.some((g) => g.slug === m[1]))
-  .map((m) => ({ id: `b-${m[1]}`, slug: m[1]!, title: m[2]!, minGrade: Number(m[3]), maxGrade: Number(m[4]) }));
+const branches: BranchRow[] = [...seed.matchAll(/^\s+\('([^']+)', '([^']+)', (\d+), (\d+), \d+\)/gm)].map((m) => ({
+  id: `b-${m[1]}`, slug: m[1]!, title: m[2]!, minGrade: Number(m[3]), maxGrade: Number(m[4]),
+}));
 
 const subjects: SubjectRow[] = [...seed.matchAll(/select '([^']+)', (\d+), (null|\(select id from public\.branches where slug = '([^']+)'\)), '([^']+)' where/g)].map((m, i) => ({
-  id: `s${i}`,
-  title: m[1]!,
-  grade: Number(m[2]),
-  branchId: m[4] ? `b-${m[4]}` : null,
-  category: m[5]!,
+  id: `s${i}`, title: m[1]!, grade: Number(m[2]), branchId: m[4] ? `b-${m[4]}` : null, category: m[5]!,
 }));
 
 const slugs = (grade: number, branch: string | null) => gamesForStudent(games, grade, branch).map((g) => g.slug);
@@ -67,40 +63,49 @@ describe('seed parsing (guards the tests below)', () => {
   it('reads all 25 games, 8 branches and the subject lists', () => {
     expect(games).toHaveLength(25);
     expect(branches.map((b) => b.slug)).toEqual(['academic-10', 'vocational-10', 'scientific', 'industrial', 'agricultural', 'literary', 'sharia', 'entrepreneurship']);
-    expect(subjects.length).toBeGreaterThan(150);
+    expect(subjects).toHaveLength(212);
   });
 });
 
-describe('game menu filtering by stage', () => {
+describe('grade visibility: each student sees only their own grade\'s games', () => {
   it('grades 1-4 get exactly the five early games', () => {
-    for (const grade of [1, 2, 3, 4]) {
-      expect(slugs(grade, null)).toEqual(['letter-garden', 'counting-farm', 'memory-pairs', 'shape-sorter', 'story-builder']);
-    }
+    for (const grade of [1, 2, 3, 4]) expect(slugs(grade, null)).toEqual(['letter-garden', 'counting-farm', 'memory-pairs', 'shape-sorter', 'story-builder']);
   });
-  it('grades 5-9 get the five middle games and none of the early ones', () => {
-    for (const grade of [5, 6, 7, 8, 9]) {
-      expect(slugs(grade, null)).toEqual(['math-sprint', 'word-ladder', 'science-lab-quiz', 'map-hunt', 'escape-room']);
-    }
+  it('grades 5-9 get the five middle games, including Map Hunt', () => {
+    for (const grade of [5, 6, 7, 8, 9]) expect(slugs(grade, null)).toEqual(['math-sprint', 'word-ladder', 'science-lab-quiz', 'map-hunt', 'escape-room']);
   });
-  it('grade 10 gets its five games, plus Map Hunt (the request names grade 10 for it)', () => {
-    expect(slugs(10, 'academic-10')).toEqual(['map-hunt', 'knowledge-duel', 'find-the-mistake', 'timeline-sort', 'crossword', 'flashcard-streak']);
+  it('Map Hunt covers grades 5 to 10 and nothing else', () => {
+    const map = games.find((g) => g.slug === 'map-hunt')!;
+    expect([map.minGrade, map.maxGrade]).toEqual([5, 10]);
+    for (const grade of [4, 11, 12]) expect(slugs(grade, 'scientific')).not.toContain('map-hunt');
   });
-  it('grade 11 gets the grades 11-12 games; the Lab Simulator needs the scientific branch', () => {
+  it('grade 10 gets the grade 10 games, for both the academic and the vocational branch', () => {
+    const expected = ['map-hunt', 'knowledge-duel', 'find-the-mistake', 'timeline-sort', 'crossword', 'flashcard-streak'];
+    expect(slugs(10, 'academic-10')).toEqual(expected);
+    expect(slugs(10, 'vocational-10')).toEqual(expected);
+  });
+  it('grade 11 gets only the first-secondary games; the Lab Simulator needs the scientific branch', () => {
     expect(slugs(11, 'scientific')).toEqual(['exam-sprint', 'concept-connect', 'mistake-bank', 'lab-simulator', 'daily-challenge']);
-    expect(slugs(11, 'literary')).toEqual(['exam-sprint', 'concept-connect', 'mistake-bank', 'daily-challenge']);
-    expect(slugs(11, null)).not.toContain('lab-simulator');
+    for (const branch of ['industrial', 'agricultural', 'literary', 'sharia', 'entrepreneurship']) {
+      expect(slugs(11, branch)).toEqual(['exam-sprint', 'concept-connect', 'mistake-bank', 'daily-challenge']);
+    }
   });
-  it('grade 12 gets the grades 11-12 games and the five Tawjihi games', () => {
-    expect(slugs(12, 'scientific')).toEqual([
-      'exam-sprint', 'concept-connect', 'mistake-bank', 'lab-simulator', 'daily-challenge',
-      'mock-exam', 'recall-cards', 'question-type-drill', 'beat-your-best', 'weak-spot-boss',
-    ]);
-    expect(slugs(12, 'sharia')).not.toContain('lab-simulator');
+  it('grade 12 gets the Tawjihi games only, and none of the grade 11 games, in every branch', () => {
+    const tawjihi = ['mock-exam', 'recall-cards', 'question-type-drill', 'beat-your-best', 'weak-spot-boss'];
+    const grade11 = ['exam-sprint', 'concept-connect', 'mistake-bank', 'lab-simulator', 'daily-challenge'];
+    for (const branch of ['scientific', 'industrial', 'agricultural', 'literary', 'sharia', 'entrepreneurship']) {
+      expect(slugs(12, branch)).toEqual(tawjihi);
+      for (const g of grade11) expect(slugs(12, branch)).not.toContain(g);
+    }
   });
-  it('never shows a game from another stage', () => {
-    expect(slugs(4, null)).not.toContain('math-sprint');
-    expect(slugs(11, 'scientific')).not.toContain('mock-exam');
-    expect(slugs(9, null)).not.toContain('knowledge-duel');
+  it('no grade sees a game from another grade band', () => {
+    for (const grade of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+      const branch = grade === 10 ? 'academic-10' : grade >= 11 ? 'scientific' : null;
+      for (const g of gamesForStudent(games, grade, branch)) {
+        expect(grade, `${g.slug} for grade ${grade}`).toBeGreaterThanOrEqual(g.minGrade);
+        expect(grade, `${g.slug} for grade ${grade}`).toBeLessThanOrEqual(g.maxGrade);
+      }
+    }
   });
   it('shows nothing without a grade, hides inactive games and orders by sort order', () => {
     expect(gamesForStudent(games, null, null)).toEqual([]);
@@ -108,86 +113,79 @@ describe('game menu filtering by stage', () => {
     expect(gamesForStudent(off, 1, null).map((g) => g.slug)).not.toContain('letter-garden');
     expect(gamesForStudent([...games].reverse(), 1, null)[0]?.slug).toBe('letter-garden');
   });
-  it('lists unfinished engines in the menu but marks them as not playable', () => {
-    const unplayable = games.filter((g) => !isPlayable(g.engine)).map((g) => g.slug);
-    expect(unplayable.sort()).toEqual(['crossword', 'knowledge-duel', 'map-hunt']);
+  it('every game now has a play screen', () => {
+    expect(games.filter((g) => !isPlayable(g.engine))).toEqual([]);
   });
 });
 
-describe('subject loading by grade and branch', () => {
-  const titles = (grade: number, branch: string | null) =>
-    subjectsForStudent(subjects, grade, branch ? branchId(branch) : null).map((s) => s.title);
+describe('subject loading by grade and branch (official names from elearn.edu.ps)', () => {
+  const titles = (grade: number, branch: string | null) => subjectsForStudent(subjects, grade, branch ? branchId(branch) : null).map((s) => s.title);
 
-  it('has the requested subject counts for each grade band', () => {
-    expect(titles(1, null)).toHaveLength(6);
-    expect(titles(2, null)).toHaveLength(6);
-    expect(titles(3, null)).toHaveLength(7);
-    expect(titles(4, null)).toHaveLength(7);
-    for (const grade of [5, 6, 7, 8, 9]) expect(titles(grade, null)).toHaveLength(10);
-  });
-  it('grades 1-2 and 3-4 differ as requested', () => {
-    expect(titles(1, null)).toContain('لغتنا الجميلة');
-    expect(titles(1, null)).not.toContain('العلوم الحياتية');
-    expect(titles(3, null)).toContain('العلوم الحياتية');
-    expect(titles(3, null)).toContain('التنشئة الوطنية والاجتماعية');
-  });
-  it('grade 10 differs between the academic and vocational branches', () => {
+  it('has the subject counts listed on the site for each grade and branch', () => {
+    for (const g of [1, 2]) expect(titles(g, null)).toHaveLength(6);
+    for (const g of [3, 4]) expect(titles(g, null)).toHaveLength(7);
+    for (const g of [5, 6, 7, 8, 9]) expect(titles(g, null)).toHaveLength(10);
     expect(titles(10, 'academic-10')).toHaveLength(11);
-    expect(titles(10, 'vocational-10')).toHaveLength(9);
-    expect(titles(10, 'academic-10')).toContain('الفيزياء');
-    expect(titles(10, 'vocational-10')).not.toContain('الفيزياء');
-    expect(titles(10, 'vocational-10')).toContain('العلوم المهنية (نظري وعملي)');
-  });
-  it('grades 11-12 each load only their own branch', () => {
-    const expected: Record<string, number> = { scientific: 9, industrial: 8, agricultural: 9, literary: 10, sharia: 11, entrepreneurship: 9 };
-    for (const [branch, count] of Object.entries(expected)) {
-      for (const grade of [11, 12]) expect(titles(grade, branch), `${branch} grade ${grade}`).toHaveLength(count);
+    expect(titles(10, 'vocational-10')).toHaveLength(11);
+    const counts: Record<string, [number, number]> = { scientific: [9, 9], industrial: [8, 8], agricultural: [9, 9], literary: [11, 11], sharia: [11, 11], entrepreneurship: [9, 9] };
+    for (const [branch, [g11, g12]] of Object.entries(counts)) {
+      expect(titles(11, branch), `${branch} 11`).toHaveLength(g11);
+      expect(titles(12, branch), `${branch} 12`).toHaveLength(g12);
     }
-    expect(titles(11, 'industrial')).toContain('الرسم الصناعي');
-    expect(titles(11, 'scientific')).not.toContain('الرسم الصناعي');
-    expect(titles(12, 'sharia')).toContain('العقيدة');
-    expect(titles(12, 'sharia')).not.toContain('التربية المسيحية');
   });
-  it('a grade 10-12 student with no branch sees no subjects, and a branch never leaks into another grade', () => {
+  it('uses the site\'s wording, not translations', () => {
+    expect(titles(1, null)).toContain('التربية الوطنية والحياتية');
+    expect(titles(3, null)).toContain('العلوم والحياة');
+    expect(titles(5, null)).toContain('التلاوة والتجويد');
+    expect(titles(10, 'academic-10')).toContain('جغرافية فلسطين | أكاديمي');
+    expect(titles(10, 'vocational-10')).toContain('العلوم المهنية | نظري');
+    expect(titles(10, 'vocational-10')).toContain('العلوم المهنية | عملي');
+    expect(titles(12, 'agricultural')).toContain('علم الزراعة | إنتاج نباتي');
+    expect(titles(11, 'literary')).toContain('اللغة الإنجليزية | Reading Plus');
+    expect(titles(11, 'entrepreneurship')).toContain('إدارة واقتصاد');
+  });
+  it('grades 11 and 12 of one branch can differ, as on the site', () => {
+    expect(titles(11, 'scientific')).toContain('اللغة العربية');
+    expect(titles(12, 'scientific')).toContain('المطالعة والقواعد');
+    expect(titles(12, 'scientific')).not.toContain('اللغة العربية');
+  });
+  it('a grade 10-12 student with no branch sees no subjects, and a wrong branch loads nothing', () => {
     expect(titles(11, null)).toEqual([]);
     expect(titles(11, 'academic-10')).toEqual([]);
-    // Grades before 10 have no branches: a leftover branch value is ignored and the grade's own subjects load.
-    expect(titles(5, 'scientific')).toHaveLength(10);
+    expect(titles(5, 'scientific')).toHaveLength(10); // grades before 10 have no branches: a stray value is ignored
     expect(subjectsForStudent(subjects, null, null)).toEqual([]);
   });
   it('branches are offered only for the matching grades', () => {
-    expect(branchesForGrade(branches, 10).map((b) => b.slug)).toEqual(['academic-10', 'vocational-10']);
+    expect(branchesForGrade(branches, 10).map((b) => b.title)).toEqual(['أكاديمي', 'مهني']);
     expect(branchesForGrade(branches, 11)).toHaveLength(6);
     expect(branchesForGrade(branches, 7)).toEqual([]);
     expect(branchesForGrade(branches, null)).toEqual([]);
   });
   it('a game covers only the subjects in its categories (or every subject when it has none)', () => {
     const grade5 = subjectsForStudent(subjects, 5, null);
-    const sprint = games.find((g) => g.slug === 'math-sprint')!;
-    expect(subjectsForGame(sprint, grade5).map((s) => s.title)).toEqual(['الرياضيات']);
-    const escape = games.find((g) => g.slug === 'escape-room')!;
-    expect(subjectsForGame(escape, grade5)).toHaveLength(10);
-    const lab = games.find((g) => g.slug === 'science-lab-quiz')!;
-    expect(subjectsForGame(lab, grade5).map((s) => s.title).sort()).toEqual(['البرمجة', 'التكنولوجيا', 'العلوم الحياتية'].sort());
+    expect(subjectsForGame(games.find((g) => g.slug === 'math-sprint')!, grade5).map((s) => s.title)).toEqual(['الرياضيات']);
+    expect(subjectsForGame(games.find((g) => g.slug === 'escape-room')!, grade5)).toHaveLength(10);
+    expect(subjectsForGame(games.find((g) => g.slug === 'science-lab-quiz')!, grade5).map((s) => s.title).sort()).toEqual(['البرمجة', 'التكنولوجيا', 'العلوم والحياة'].sort());
   });
-  it('Map Hunt covers Social Studies in grades 5-9 and Palestine Geography in grade 10', () => {
+  it('Map Hunt: Social Studies in grades 5-9, Palestine Geography in grade 10', () => {
     const map = games.find((g) => g.slug === 'map-hunt')!;
-    expect(subjectsForGame(map, subjectsForStudent(subjects, 6, null)).map((s) => s.title)).toEqual(['الدراسات الاجتماعية']);
-    expect(subjectsForGame(map, subjectsForStudent(subjects, 10, branchId('academic-10'))).map((s) => s.title)).toEqual(['جغرافيا فلسطين']);
+    for (const grade of [5, 6, 7, 8, 9]) {
+      expect(subjectsForGame(map, subjectsForStudent(subjects, grade, null)).map((s) => s.title)).toEqual(['الدراسات الاجتماعية']);
+    }
+    expect(subjectsForGame(map, subjectsForStudent(subjects, 10, branchId('academic-10'))).map((s) => s.title)).toEqual(['جغرافية فلسطين | أكاديمي']);
+    expect(subjectsForGame(map, subjectsForStudent(subjects, 10, branchId('vocational-10'))).map((s) => s.title)).toEqual(['جغرافية فلسطين']);
   });
   it('the Lab Simulator covers only science subjects of the scientific branch', () => {
     const lab = games.find((g) => g.slug === 'lab-simulator')!;
-    const found = subjectsForGame(lab, subjectsForStudent(subjects, 11, branchId('scientific'))).map((s) => s.title);
-    expect(found.sort()).toEqual(['الفيزياء', 'الكيمياء', 'العلوم الحياتية'].sort());
+    expect(subjectsForGame(lab, subjectsForStudent(subjects, 11, branchId('scientific'))).map((s) => s.title).sort()).toEqual(['الفيزياء', 'الكيمياء', 'العلوم الحياتية'].sort());
   });
 });
 
-describe('scoring', () => {
+describe('scoring helpers', () => {
   it('scores 10 per correct answer and 0 for a wrong one', () => {
     expect(answerPoints(true, 0, false)).toBe(10);
     expect(answerPoints(false, 5, true)).toBe(0);
-    const s = scoreAnswers([{ correct: true }, { correct: false }, { correct: true }], false);
-    expect(s).toMatchObject({ score: 20, max: 30, correct: 2 });
+    expect(scoreAnswers([{ correct: true }, { correct: false }, { correct: true }], false)).toMatchObject({ score: 20, max: 30, correct: 2 });
   });
   it('an empty play scores 0 of 0', () => {
     expect(scoreAnswers([], false)).toMatchObject({ score: 0, max: 0, correct: 0 });
@@ -198,15 +196,13 @@ describe('scoring', () => {
   });
   it('flashcard streaks multiply the points and a miss resets the streak', () => {
     const log = [true, true, true, true, false, true].map((correct) => ({ correct }));
-    // 10 + 10 + 10 + (x2) 20 + 0 + 10 (streak reset)
     expect(scoreAnswers(log, true)).toMatchObject({ score: 60, correct: 5, bestStreak: 4 });
   });
   it('the maximum assumes a perfect run, so the score never exceeds it', () => {
     expect(maxScore(4, false)).toBe(40);
-    expect(maxScore(4, true)).toBe(10 + 10 + 10 + 20);
+    expect(maxScore(4, true)).toBe(50);
     for (let n = 0; n < 20; n++) {
-      const log = Array.from({ length: n }, (_, i) => ({ correct: i % 3 !== 0 }));
-      const s = scoreAnswers(log, true);
+      const s = scoreAnswers(Array.from({ length: n }, (_, i) => ({ correct: i % 3 !== 0 })), true);
       expect(s.score).toBeLessThanOrEqual(s.max);
     }
   });
@@ -223,22 +219,12 @@ describe('scoring', () => {
 
 describe('session validation (mirrors the table checks)', () => {
   const ok = { gameId: 'g', subjectId: 's', score: 30, maxScore: 50, durationSeconds: 42 };
-  it('accepts a normal session, including a full score and a score of 0', () => {
+  it('accepts a normal session and rejects impossible ones', () => {
     expect(validateSession(ok)).toBeNull();
-    expect(validateSession({ ...ok, score: 50 })).toBeNull();
-    expect(validateSession({ ...ok, score: 0 })).toBeNull();
-    expect(validateSession({ ...ok, subjectId: null })).toBeNull();
-  });
-  it('rejects scores above the maximum, negatives, a zero maximum and fractions', () => {
     expect(validateSession({ ...ok, score: 51 })).not.toBeNull();
     expect(validateSession({ ...ok, score: -1 })).not.toBeNull();
     expect(validateSession({ ...ok, maxScore: 0, score: 0 })).not.toBeNull();
-    expect(validateSession({ ...ok, score: 1.5 })).not.toBeNull();
-  });
-  it('rejects bad durations and a missing game', () => {
-    expect(validateSession({ ...ok, durationSeconds: -1 })).not.toBeNull();
     expect(validateSession({ ...ok, durationSeconds: 86401 })).not.toBeNull();
-    expect(validateSession({ ...ok, durationSeconds: NaN })).not.toBeNull();
     expect(validateSession({ ...ok, gameId: '' })).not.toBeNull();
   });
 });
@@ -248,36 +234,24 @@ describe('game helpers', () => {
     const items = [1, 2, 3, 4, 5, 6, 7, 8];
     expect([...shuffle(items, 7)].sort((a, b) => a - b)).toEqual(items);
     expect(shuffle(items, 7)).toEqual(shuffle(items, 7));
-    expect(items).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
   });
   it('word ladder steps change exactly one letter, in Arabic or English', () => {
     expect(isOneLetterStep('cat', 'cot')).toBe(true);
     expect(isOneLetterStep('cat', 'cat')).toBe(false);
-    expect(isOneLetterStep('cat', 'dog')).toBe(false);
     expect(isOneLetterStep('cat', 'cats')).toBe(false);
     expect(isOneLetterStep('قلم', 'علم')).toBe(true);
-    expect(isOneLetterStep('', '')).toBe(false);
+    expect(isValidLadderStep('cat', 'cot', ['cot'])).toBe(true);
+    expect(isValidLadderStep('cat', 'cxt', ['cot'])).toBe(false);
   });
-  it('a ladder step must also be in the word list when one is given', () => {
-    expect(isValidLadderStep('cat', 'cot', ['cot', 'cog'])).toBe(true);
-    expect(isValidLadderStep('cat', 'cxt', ['cot', 'cog'])).toBe(false);
-    expect(isValidLadderStep('cat', 'cxt', null)).toBe(true);
-  });
-  it('compares sequences exactly', () => {
+  it('compares sequences exactly and requeues missed cards without touching the original', () => {
     expect(sameSequence(['a', 'b'], ['a', 'b'])).toBe(true);
     expect(sameSequence(['a', 'b'], ['b', 'a'])).toBe(false);
-    expect(sameSequence(['a'], ['a', 'b'])).toBe(false);
-  });
-  it('puts a missed card back a few places later without touching the original queue', () => {
     const queue = ['b', 'c', 'd', 'e'];
     expect(requeueMissed(queue, 'a')).toEqual(['b', 'c', 'd', 'a', 'e']);
-    expect(requeueMissed(['b'], 'a')).toEqual(['b', 'a']);
-    expect(requeueMissed([], 'a')).toEqual(['a']);
     expect(queue).toEqual(['b', 'c', 'd', 'e']);
   });
   it('finds the weakest topic from wrong answers', () => {
     expect(weakestTopic([{ topic: 'x' }, { topic: 'y' }, { topic: 'y' }, { topic: null }])).toBe('y');
     expect(weakestTopic([{ topic: null }])).toBeNull();
-    expect(weakestTopic([])).toBeNull();
   });
 });

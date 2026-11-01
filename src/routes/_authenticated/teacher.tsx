@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { BookOpen, Check, ClipboardList, FileQuestion, Loader2, Play, Plus, Trash2, Video, Wrench } from 'lucide-react';
@@ -77,6 +77,7 @@ function TeacherPage() {
 
   return (
     <StudentWorkspace title="منطقة المعلم" subtitle="أضف المواد والدروس والحصص والواجبات والاختبارات، وتابع تسليمات الطلاب.">
+      <Button variant="outline" asChild><Link to="/game-review"><FileQuestion />مراجعة أسئلة الألعاب</Link></Button>
       {message && <p className="auth-notice" role="status"><Check size={16} />{message}</p>}
       {isLoading ? <div className="study-empty" role="status"><Loader2 className="animate-spin" size={28} /><p>جارٍ التحميل...</p></div> : error ? (
         <EmptyState icon={Wrench} title="تعذر تحميل المحتوى" text="حدث خطأ غير متوقع. حاول تحديث الصفحة." />

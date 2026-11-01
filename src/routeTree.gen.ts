@@ -24,6 +24,7 @@ import { Route as AuthenticatedAiTeacherRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAssignmentsRouteImport } from './routes/_authenticated/assignments'
 import { Route as AuthenticatedClassesRouteImport } from './routes/_authenticated/classes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedGameReviewRouteImport } from './routes/_authenticated/game-review'
 import { Route as AuthenticatedGamesRouteImport } from './routes/_authenticated/games'
 import { Route as AuthenticatedLessonsRouteImport } from './routes/_authenticated/lessons'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
@@ -117,6 +118,11 @@ const AuthenticatedClassesRoute = AuthenticatedClassesRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGameReviewRoute = AuthenticatedGameReviewRouteImport.update({
+  id: '/game-review',
+  path: '/game-review',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedGamesRoute = AuthenticatedGamesRouteImport.update({
@@ -238,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/assignments': typeof AuthenticatedAssignmentsRouteWithChildren
   '/classes': typeof AuthenticatedClassesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/game-review': typeof AuthenticatedGameReviewRoute
   '/games': typeof AuthenticatedGamesRouteWithChildren
   '/lessons': typeof AuthenticatedLessonsRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -272,6 +279,7 @@ export interface FileRoutesByTo {
   '/ai-teacher': typeof AuthenticatedAiTeacherRoute
   '/classes': typeof AuthenticatedClassesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/game-review': typeof AuthenticatedGameReviewRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/parent': typeof AuthenticatedParentRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -306,6 +314,7 @@ export interface FileRoutesById {
   '/_authenticated/assignments': typeof AuthenticatedAssignmentsRouteWithChildren
   '/_authenticated/classes': typeof AuthenticatedClassesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/game-review': typeof AuthenticatedGameReviewRoute
   '/_authenticated/games': typeof AuthenticatedGamesRouteWithChildren
   '/_authenticated/lessons': typeof AuthenticatedLessonsRouteWithChildren
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -343,6 +352,7 @@ export interface FileRouteTypes {
     | '/assignments'
     | '/classes'
     | '/dashboard'
+    | '/game-review'
     | '/games'
     | '/lessons'
     | '/notifications'
@@ -377,6 +387,7 @@ export interface FileRouteTypes {
     | '/ai-teacher'
     | '/classes'
     | '/dashboard'
+    | '/game-review'
     | '/notifications'
     | '/parent'
     | '/profile'
@@ -410,6 +421,7 @@ export interface FileRouteTypes {
     | '/_authenticated/assignments'
     | '/_authenticated/classes'
     | '/_authenticated/dashboard'
+    | '/_authenticated/game-review'
     | '/_authenticated/games'
     | '/_authenticated/lessons'
     | '/_authenticated/notifications'
@@ -550,6 +562,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/game-review': {
+      id: '/_authenticated/game-review'
+      path: '/game-review'
+      fullPath: '/game-review'
+      preLoaderRoute: typeof AuthenticatedGameReviewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/games': {
@@ -764,6 +783,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssignmentsRoute: typeof AuthenticatedAssignmentsRouteWithChildren
   AuthenticatedClassesRoute: typeof AuthenticatedClassesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedGameReviewRoute: typeof AuthenticatedGameReviewRoute
   AuthenticatedGamesRoute: typeof AuthenticatedGamesRouteWithChildren
   AuthenticatedLessonsRoute: typeof AuthenticatedLessonsRouteWithChildren
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -781,6 +801,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssignmentsRoute: AuthenticatedAssignmentsRouteWithChildren,
   AuthenticatedClassesRoute: AuthenticatedClassesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedGameReviewRoute: AuthenticatedGameReviewRoute,
   AuthenticatedGamesRoute: AuthenticatedGamesRouteWithChildren,
   AuthenticatedLessonsRoute: AuthenticatedLessonsRouteWithChildren,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,

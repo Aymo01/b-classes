@@ -1,275 +1,379 @@
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { CardsGame, ChoiceGame, LadderGame, OrderGame, PairGame, type EngineResult } from '@/components/games/engines';
-import type { GameItemDTO } from '@/lib/games.functions';
+import { CardsGame, ChoiceGame, LadderGame, OrderGame, PairGame, type Check, type EngineProps } from '@/components/games/engines';
+import { CrosswordGame, MapGame } from '@/components/games/engines-extra';
+import type { CheckDTO } from '@/lib/games.functions';
+import type { ClientQuestion, PublicLayout } from '@/lib/games/rules';
 
+/**
+ * These screens never know an answer: every verdict below comes from a fake `check`, standing in for the server.
+ * That is also what the tests assert, that the screen asks the server and shows what it says.
+ */
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
 });
 
-const item = (id: string, kind: string, payload: GameItemDTO['payload'], topic: string | null = null): GameItemDTO => ({ id, kind, topic, qtype: null, payload });
-const choice = (id: string, correct = 0) => item(id, 'choice', { prompt: `سؤال ${id}`, options: ['الصحيح', 'الخاطئ', 'آخر'], correct }, 't1');
-
-function setup(ui: (onFinish: (r: EngineResult) => void) => React.ReactElement) {
-  const onFinish = vi.fn<(r: EngineResult) => void>();
-  render(ui(onFinish));
-  return onFinish;
+type Props = Partial<EngineProps> & { check: Check };
+const base = { layout: {} as PublicLayout, config: {} as EngineProps['config'], questions: [] as ClientQuestion[] };
+function setup(Game: (p: EngineProps) => React.ReactElement | null, props: Props) {
+  const onDone = vi.fn();
+  render(<Game {...base} {...props} onDone={onDone} />);
+  return onDone;
 }
+const verdict = (v: Partial<CheckDTO> & { correct: boolean }): Check => vi.fn(async () => v as CheckDTO);
 
-describe('choice engine', () => {
-  it('scores a correct answer, says so in words, and finishes with the saved result', () => {
-    const onFinish = setup((f) => <ChoiceGame items={[choice('a')]} config={{ questionCount: 1 }} onFinish={f} />);
-    fireEvent.click(screen.getByRole('button', { name: /الصحيح/ }));
-    expect(screen.getByText('إجابة صحيحة')).toBeTruthy();
+const mc = (id: string): ClientQuestion => ({ id, kind: 'choice', prompt: `سؤال ${id}`, options: ['أول', 'ثان', 'ثالث'] });
+
+describe('choice screen', () => {
+  it('sends the chosen option to the server and shows its verdict in words', async () => {
+    const check = verdict({ correct: true, reveal: { correctIndex: 1 } });
+    const onDone = setup(ChoiceGame, { questions: [mc('a')], check });
+    fireEvent.click(screen.getByRole('button', { name: 'ثان' }));
+    expect(await screen.findByText('إجابة صحيحة')).toBeTruthy();
+    expect(check).toHaveBeenCalledWith('a', { choice: 1 });
     fireEvent.click(screen.getByRole('button', { name: 'إنهاء اللعبة' }));
-    expect(onFinish).toHaveBeenCalledTimes(1);
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 10, max: 10, details: { answered: 1, correct: 1, wrongItemIds: [] } });
+    expect(onDone).toHaveBeenCalledTimes(1);
   });
 
-  it('marks a wrong answer with text and the correct option, scores 0 and records the item for Mistake Bank', () => {
-    const onFinish = setup((f) => <ChoiceGame items={[choice('a')]} config={{ questionCount: 1 }} onFinish={f} />);
-    fireEvent.click(screen.getByRole('button', { name: /الخاطئ/ }));
-    expect(screen.getByText(/إجابة خاطئة — الصحيحة: الصحيح/)).toBeTruthy();
+  it('shows a wrong answer with the correct option named, using text and not colour alone', async () => {
+    setup(ChoiceGame, { questions: [mc('a')], check: verdict({ correct: false, reveal: { correctIndex: 2 } }) });
+    fireEvent.click(screen.getByRole('button', { name: 'أول' }));
+    expect(await screen.findByText(/إجابة خاطئة — الصحيحة: ثالث/)).toBeTruthy();
     expect(screen.getByText('الصحيحة')).toBeTruthy();
     expect(screen.getByText('اختيارك')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'إنهاء اللعبة' }));
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 0, max: 10, details: { wrongItemIds: ['a'] } });
   });
 
-  it('ignores malformed items and limits the number of questions', () => {
-    const bad = item('bad', 'choice', { prompt: 'x', options: ['one'], correct: 0 });
-    const onFinish = setup((f) => <ChoiceGame items={[bad, choice('a'), choice('b'), choice('c')]} config={{ questionCount: 2 }} onFinish={f} />);
-    expect(screen.getByText(/السؤال 1 من 2/)).toBeTruthy();
-    for (let i = 0; i < 2; i++) {
-      fireEvent.click(screen.getByRole('button', { name: /الصحيح/ }));
-      fireEvent.click(screen.getByRole('button', { name: /التالي|إنهاء اللعبة/ }));
-    }
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 20, max: 20 });
+  it('skips questions already answered in a resumed run', () => {
+    setup(ChoiceGame, { questions: [mc('a'), mc('b')], answered: ['a'], check: verdict({ correct: true }) });
+    expect(screen.getByText('سؤال b')).toBeTruthy();
+    expect(screen.queryByText('سؤال a')).toBeNull();
   });
 
-  it('every answer button is a real button, so the whole game works from the keyboard', () => {
-    setup((f) => <ChoiceGame items={[choice('a')]} config={{}} onFinish={f} />);
+  it('shows the error when the server refuses an answer', async () => {
+    const check: Check = vi.fn(async () => { throw new Error('انتهى الوقت.'); });
+    setup(ChoiceGame, { questions: [mc('a')], check });
+    fireEvent.click(screen.getByRole('button', { name: 'أول' }));
+    expect((await screen.findByRole('alert')).textContent).toContain('انتهى الوقت');
+  });
+
+  it('answer buttons are real buttons, so every game works from the keyboard', () => {
+    setup(ChoiceGame, { questions: [mc('a')], check: verdict({ correct: true }) });
     const buttons = screen.getAllByRole('button');
     expect(buttons).toHaveLength(3);
     for (const b of buttons) expect(b.tagName).toBe('BUTTON');
   });
 
-  it('the 60-second sprint ends when time runs out and reports what was answered', () => {
+  it('a timed sprint calls done when the clock runs out', () => {
     vi.useFakeTimers();
-    const onFinish = setup((f) => <ChoiceGame items={[choice('a'), choice('b')]} config={{ timeLimit: 60, questionCount: 60 }} onFinish={f} />);
-    fireEvent.click(screen.getByRole('button', { name: /الصحيح/ }));
+    const onDone = setup(ChoiceGame, { questions: [mc('a')], config: { timeLimit: 60 }, check: verdict({ correct: true }) });
+    expect(screen.getByRole('timer').textContent).toContain('60');
     act(() => { vi.advanceTimersByTime(60_000); });
-    expect(onFinish).toHaveBeenCalledTimes(1);
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 10, max: 10, details: { timedOut: true, answered: 1 } });
+    expect(onDone).toHaveBeenCalledTimes(1);
   });
 
-  it('time out with nothing answered gives 0 of 0, which the shell does not save', () => {
-    vi.useFakeTimers();
-    const onFinish = setup((f) => <ChoiceGame items={[choice('a')]} config={{ timeLimit: 5 }} onFinish={f} />);
-    act(() => { vi.advanceTimersByTime(5_000); });
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 0, max: 0 });
-  });
-
-  it('Letter Garden grows one flower per correct answer', () => {
-    setup((f) => <ChoiceGame items={[choice('a'), choice('b')]} config={{ growth: true }} onFinish={f} />);
+  it('Letter Garden grows one flower per correct answer', async () => {
+    setup(ChoiceGame, { questions: [mc('a'), mc('b')], config: { growth: true }, check: verdict({ correct: true, reveal: { correctIndex: 0 } }) });
     expect(screen.getByText('الأزهار: 0')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: /الصحيح/ }));
-    expect(screen.getByText('الأزهار: 1')).toBeTruthy();
-  });
-
-  it('Escape Room says how many questions open the next room, then opens it', () => {
-    setup((f) => <ChoiceGame items={[choice('a'), choice('b'), choice('c'), choice('d')]} config={{ roomSize: 3, questionCount: 4 }} onFinish={f} />);
-    for (let i = 0; i < 3; i++) {
-      fireEvent.click(screen.getByRole('button', { name: /الصحيح/ }));
-      if (i < 2) fireEvent.click(screen.getByRole('button', { name: 'التالي' }));
-    }
-    expect(screen.getByText('فُتحت الغرفة التالية')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'أول' }));
+    expect(await screen.findByText('الأزهار: 1')).toBeTruthy();
   });
 });
 
-describe('pair engine', () => {
-  const pairs = [item('p1', 'pair', { left: 'Apple', right: 'تفاحة' }), item('p2', 'pair', { left: 'Dog', right: 'كلب' })];
+describe('Escape Room screen', () => {
+  const config = { rooms: 3, maxWrong: 3, lockSeconds: 60 };
+  const qs = [mc('a'), mc('b'), mc('c'), mc('d')];
 
-  it('match mode: right pairs finish with a full score', () => {
-    const onFinish = setup((f) => <PairGame items={pairs} config={{ mode: 'match' }} onFinish={f} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Apple' }));
-    fireEvent.click(screen.getByRole('button', { name: 'تفاحة' }));
-    expect(onFinish).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Dog' }));
-    fireEvent.click(screen.getByRole('button', { name: 'كلب' }));
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 20, max: 20, details: { misses: 0 } });
+  it('a room opens only after a correct answer', async () => {
+    const check = vi.fn<Check>()
+      .mockResolvedValueOnce({ correct: false, reveal: { correctIndex: 1 }, opened: 0 })
+      .mockResolvedValueOnce({ correct: true, reveal: { correctIndex: 0 }, opened: 1 });
+    setup(ChoiceGame, { questions: qs, config, check });
+    expect(screen.getByText('الغرف المفتوحة: 0 من 3')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'أول' }));
+    await screen.findByText(/إجابة خاطئة/);
+    expect(screen.queryByText('فُتحت الغرفة')).toBeNull();
+    expect(screen.getByText('الغرف المفتوحة: 0 من 3')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'التالي' }));
+    fireEvent.click(screen.getByRole('button', { name: 'أول' }));
+    expect(await screen.findByText('فُتحت الغرفة')).toBeTruthy();
+    expect(screen.getByText('الغرف المفتوحة: 1 من 3')).toBeTruthy();
   });
 
-  it('a wrong match costs 2 points and is announced in words', () => {
-    const onFinish = setup((f) => <PairGame items={pairs} config={{ mode: 'match' }} onFinish={f} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Apple' }));
-    fireEvent.click(screen.getByRole('button', { name: 'كلب' }));
-    expect(screen.getByText('إجابة خاطئة')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Apple' }));
-    fireEvent.click(screen.getByRole('button', { name: 'تفاحة' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Dog' }));
-    fireEvent.click(screen.getByRole('button', { name: 'كلب' }));
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 18, max: 20, details: { misses: 1 } });
+  it('three wrong answers in a row lock the room and the options cannot be pressed', async () => {
+    const check: Check = vi.fn(async () => ({ correct: false, reveal: { correctIndex: 2 }, opened: 0, locked: { seconds: 60 } }));
+    setup(ChoiceGame, { questions: qs, config, check });
+    fireEvent.click(screen.getByRole('button', { name: 'أول' }));
+    expect((await screen.findByText(/الغرفة مقفلة بعد ثلاث إجابات خاطئة متتالية/)).textContent).toContain('60 ثانية');
+    for (const b of screen.getAllByRole('button')) expect((b as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it('asks to pick an item first when a holder is chosen with nothing selected', () => {
-    setup((f) => <PairGame items={pairs} config={{ mode: 'assign' }} onFinish={f} />);
-    fireEvent.click(screen.getByRole('button', { name: 'كلب' }));
-    expect(screen.getByText('اختر الشكل أولًا ثم الحاوية')).toBeTruthy();
+  it('the lock lifts after the minute and answering works again', async () => {
+    vi.useFakeTimers();
+    const check: Check = vi.fn(async () => ({ correct: false, reveal: { correctIndex: 2 }, opened: 0, locked: { seconds: 60 } }));
+    setup(ChoiceGame, { questions: qs, config, check });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'أول' })); });
+    expect(screen.getByText(/الغرفة مقفلة/)).toBeTruthy();
+    await act(async () => { vi.advanceTimersByTime(61_000); });
+    expect(screen.queryByText(/الغرفة مقفلة/)).toBeNull();
   });
 
-  it('assign mode lets several shapes share one holder', () => {
-    const shapes = [item('s1', 'pair', { left: 'مربع', right: 'صندوق' }), item('s2', 'pair', { left: 'مستطيل', right: 'صندوق' })];
-    const onFinish = setup((f) => <PairGame items={shapes} config={{ mode: 'assign' }} onFinish={f} />);
+  it('a request refused because the room is still locked starts the countdown instead of showing a verdict', async () => {
+    const check: Check = vi.fn(async () => ({ correct: false, locked: { seconds: 42 } }));
+    setup(ChoiceGame, { questions: qs, config, check });
+    fireEvent.click(screen.getByRole('button', { name: 'أول' }));
+    expect(await screen.findByText(/حاول بعد 42 ثانية/)).toBeTruthy();
+    expect(screen.queryByText(/إجابة خاطئة/)).toBeNull();
+  });
+});
+
+describe('pair screens', () => {
+  const lefts: ClientQuestion[] = [{ id: 'p1', kind: 'pair', left: 'مربع' }, { id: 'p2', kind: 'pair', left: 'دائرة' }];
+  const layout: PublicLayout = { rights: ['صندوق', 'كرة'] };
+  const checkRight = (map: Record<string, string>): Check => vi.fn(async (id, a) => ({ correct: map[id!] === (a as { right: string }).right }));
+
+  it('match: finishes when every pair is right, and a wrong try is reported in words', async () => {
+    const check = checkRight({ p1: 'صندوق', p2: 'كرة' });
+    const onDone = setup(PairGame, { questions: lefts, layout, config: { mode: 'match' }, check });
+    fireEvent.click(screen.getByRole('button', { name: 'مربع' }));
+    fireEvent.click(screen.getByRole('button', { name: 'كرة' }));
+    expect(await screen.findByText('إجابة خاطئة')).toBeTruthy();
+    expect(screen.getByText(/المحاولات الخاطئة: 1/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'مربع' }));
     fireEvent.click(screen.getByRole('button', { name: 'صندوق' }));
-    fireEvent.click(screen.getByRole('button', { name: /مستطيل/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'صندوق' }));
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 20, max: 20 });
+    await waitFor(() => expect(screen.getByText(/المطابقات: 1 من 2/)).toBeTruthy());
+    fireEvent.click(screen.getByRole('button', { name: 'دائرة' }));
+    fireEvent.click(screen.getByRole('button', { name: 'كرة' }));
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
   });
 
-  it('flip mode: flipping both cards of a pair matches them', () => {
-    const onFinish = setup((f) => <PairGame items={[pairs[0]!]} config={{ mode: 'flip' }} onFinish={f} />);
+  it('assign (Shape Sorter): dragging a shape onto its holder sends that pair to the server', async () => {
+    const check = checkRight({ p1: 'صندوق', p2: 'كرة' });
+    setup(PairGame, { questions: lefts, layout, config: { mode: 'assign' }, check });
+    const shape = screen.getByRole('button', { name: 'مربع' });
+    expect(shape.getAttribute('draggable')).toBe('true');
+    fireEvent.dragStart(shape);
+    fireEvent.dragOver(screen.getByRole('button', { name: 'صندوق' }));
+    fireEvent.drop(screen.getByRole('button', { name: 'صندوق' }));
+    await waitFor(() => expect(check).toHaveBeenCalledWith('p1', { right: 'صندوق' }));
+    expect(await screen.findByText(/المطابقات: 1 من 2/)).toBeTruthy();
+  });
+
+  it('assign: keyboard fallback, choose the shape then the holder, works without dragging', async () => {
+    const check = checkRight({ p1: 'صندوق', p2: 'كرة' });
+    setup(PairGame, { questions: lefts, layout, config: { mode: 'assign' }, check });
+    fireEvent.click(screen.getByRole('button', { name: 'دائرة' }));
+    expect(screen.getByRole('button', { name: 'دائرة' }).getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: 'كرة' }));
+    await waitFor(() => expect(check).toHaveBeenCalledWith('p2', { right: 'كرة' }));
+  });
+
+  it('assign: dropping on a holder with no shape chosen asks to pick the shape first', async () => {
+    setup(PairGame, { questions: lefts, layout, config: { mode: 'assign' }, check: checkRight({}) });
+    fireEvent.click(screen.getByRole('button', { name: 'كرة' }));
+    expect(await screen.findByText('اختر الشكل أولًا ثم الحاوية')).toBeTruthy();
+  });
+
+  it('flip: the server decides whether two positions match; the board only shows card texts', async () => {
+    const flipLayout: PublicLayout = { flipCards: [{ text: 'Dog' }, { text: 'كلب' }] };
+    const check: Check = vi.fn(async () => ({ correct: true, itemId: 'p1' }));
+    const onDone = setup(PairGame, { layout: flipLayout, config: { mode: 'flip' }, check });
     const cards = screen.getAllByRole('button');
-    expect(cards).toHaveLength(2);
     fireEvent.click(cards[0]!);
     fireEvent.click(cards[1]!);
-    expect(screen.getByText('إجابة صحيحة')).toBeTruthy();
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 10, max: 10 });
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
+    expect(check).toHaveBeenCalledWith(undefined, { a: 0, b: 1 });
   });
 
-  it('flip mode: unmatched cards turn back and count as a miss', () => {
-    vi.useFakeTimers();
-    setup((f) => <PairGame items={pairs} config={{ mode: 'flip' }} onFinish={f} />);
-    const owner = (b: HTMLElement) => b;
-    const cards = screen.getAllByRole('button').map(owner);
-    // Flip cards until two with different text are open: the first two buttons of a shuffled board may or may not match.
+  it('flip: a non-matching pair turns back over and counts as a miss', async () => {
+    const flipLayout: PublicLayout = { flipCards: [{ text: 'A' }, { text: 'B' }, { text: 'C' }, { text: 'D' }] };
+    setup(PairGame, { layout: flipLayout, config: { mode: 'flip' }, check: verdict({ correct: false, itemId: 'x' }) });
+    const cards = screen.getAllByRole('button');
     fireEvent.click(cards[0]!);
-    const first = cards[0]!.textContent;
-    let other = cards.slice(1).find((c) => c.getAttribute('aria-label')?.includes('مقلوبة'));
-    fireEvent.click(other!);
-    const matched = screen.queryByText('إجابة صحيحة');
-    if (!matched) {
-      expect(screen.getByText(/إجابة خاطئة/)).toBeTruthy();
-      expect(screen.getByText(/المحاولات الخاطئة: 1/)).toBeTruthy();
-      act(() => { vi.advanceTimersByTime(1000); });
-      expect(cards[0]!.textContent).not.toBe(first);
-    }
-    other = undefined;
+    fireEvent.click(cards[1]!);
+    expect(await screen.findByText(/المحاولات الخاطئة: 1/)).toBeTruthy();
+    expect(screen.getByText('إجابة خاطئة')).toBeTruthy();
   });
 });
 
-describe('order engine', () => {
-  const sentence = item('o1', 'order', { prompt: 'رتّب الجملة', sequence: ['ذهب', 'الولد', 'إلى', 'المدرسة'] });
+describe('order screen', () => {
+  const sentence: ClientQuestion = { id: 'o1', kind: 'order', prompt: 'رتّب الجملة', chips: ['المدرسة', 'ذهب', 'الولد'] };
+  const place = (words: string[]) => words.forEach((w) => fireEvent.click(screen.getByRole('button', { name: w })));
 
-  function placeInOrder(words: string[]) {
-    for (const w of words) fireEvent.click(screen.getByRole('button', { name: w }));
-  }
-
-  it('the right order scores 10 on the first check', () => {
-    const onFinish = setup((f) => <OrderGame items={[sentence]} config={{}} onFinish={f} />);
+  it('sends the student\'s order to the server and moves on only when it is right', async () => {
+    const check: Check = vi.fn(async (_id, a) => ({ correct: (a as { sequence: string[] }).sequence.join(' ') === 'ذهب الولد المدرسة' }));
+    const onDone = setup(OrderGame, { questions: [sentence], check });
     expect((screen.getByRole('button', { name: 'تحقّق' }) as HTMLButtonElement).disabled).toBe(true);
-    placeInOrder(['ذهب', 'الولد', 'إلى', 'المدرسة']);
+    place(['الولد', 'ذهب', 'المدرسة']);
     fireEvent.click(screen.getByRole('button', { name: 'تحقّق' }));
-    expect(screen.getByText('إجابة صحيحة')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'إنهاء اللعبة' }));
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 10, max: 10 });
-  });
-
-  it('a wrong order says so, lets you retry, and then scores 0 for that round', () => {
-    const onFinish = setup((f) => <OrderGame items={[sentence]} config={{}} onFinish={f} />);
-    placeInOrder(['الولد', 'ذهب', 'إلى', 'المدرسة']);
-    fireEvent.click(screen.getByRole('button', { name: 'تحقّق' }));
-    expect(screen.getByText('إجابة خاطئة')).toBeTruthy();
+    expect(await screen.findByText('إجابة خاطئة')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /ابدأ من جديد/ }));
-    placeInOrder(['ذهب', 'الولد', 'إلى', 'المدرسة']);
+    place(['ذهب', 'الولد', 'المدرسة']);
     fireEvent.click(screen.getByRole('button', { name: 'تحقّق' }));
+    expect(await screen.findByText('إجابة صحيحة')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'إنهاء اللعبة' }));
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 0, max: 10, details: { wrongItemIds: ['o1'] } });
+    expect(onDone).toHaveBeenCalledTimes(1);
   });
 
   it('a placed item can be taken back out', () => {
-    setup((f) => <OrderGame items={[sentence]} config={{}} onFinish={f} />);
+    setup(OrderGame, { questions: [sentence], check: verdict({ correct: true }) });
     fireEvent.click(screen.getByRole('button', { name: 'ذهب' }));
-    expect(screen.getAllByRole('button', { name: /ذهب/ })).toHaveLength(1);
     fireEvent.click(screen.getByRole('button', { name: /ذهب/ }));
     expect(screen.getByText('لم تختر شيئًا بعد')).toBeTruthy();
   });
 });
 
-describe('cards engine', () => {
-  const card = item('c1', 'card', { front: 'ما عاصمة فلسطين؟', back: 'القدس' });
+describe('cards screen', () => {
+  const card: ClientQuestion = { id: 'c1', kind: 'card', front: 'ما عاصمة فلسطين؟', back: 'القدس' };
 
-  it('hides the answer until asked, then scores a known card', () => {
-    const onFinish = setup((f) => <CardsGame items={[card]} config={{}} onFinish={f} />);
+  it('hides the answer until asked, then records whether the student knew it', async () => {
+    const check = verdict({ correct: true });
+    const onDone = setup(CardsGame, { questions: [card], check });
     expect(screen.queryByText('القدس')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'اعرض الإجابة' }));
     expect(screen.getByText('القدس')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /عرفتها/ }));
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 10, max: 10 });
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
+    expect(check).toHaveBeenCalledWith('c1', { known: true });
   });
 
-  it('Recall Cards bring a missed card back, then finish once it is known', () => {
-    const onFinish = setup((f) => <CardsGame items={[card]} config={{ repeatMissed: true }} onFinish={f} />);
+  it('Recall Cards bring a missed card back and finish once it is known', async () => {
+    const check = vi.fn<Check>().mockResolvedValueOnce({ correct: false }).mockResolvedValueOnce({ correct: true });
+    const onDone = setup(CardsGame, { questions: [card], config: { repeatMissed: true }, check });
     fireEvent.click(screen.getByRole('button', { name: 'اعرض الإجابة' }));
     fireEvent.click(screen.getByRole('button', { name: /لم أعرفها/ }));
-    expect(onFinish).not.toHaveBeenCalled();
-    expect(screen.getByText('ما عاصمة فلسطين؟')).toBeTruthy();
+    await waitFor(() => expect(screen.queryByRole('button', { name: /عرفتها/ })).toBeNull());
+    expect(onDone).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'اعرض الإجابة' }));
     fireEvent.click(screen.getByRole('button', { name: /عرفتها/ }));
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 10, max: 20 });
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
   });
 
-  it('a card missed over and over still ends the game (at most two repeats)', () => {
-    const onFinish = setup((f) => <CardsGame items={[card]} config={{ repeatMissed: true }} onFinish={f} />);
+  it('a card missed again and again still ends the game (at most two repeats)', async () => {
+    const onDone = setup(CardsGame, { questions: [card], config: { repeatMissed: true }, check: verdict({ correct: false }) });
     for (let i = 0; i < 3; i++) {
-      fireEvent.click(screen.getByRole('button', { name: 'اعرض الإجابة' }));
+      fireEvent.click(await screen.findByRole('button', { name: 'اعرض الإجابة' }));
       fireEvent.click(screen.getByRole('button', { name: /لم أعرفها/ }));
+      await waitFor(() => expect(screen.queryByRole('button', { name: /عرفتها/ })).toBeNull());
     }
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 0, max: 30 });
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
   });
 
-  it('Flashcard Streak shows the multiplier and applies it', () => {
-    const cards = Array.from({ length: 4 }, (_, i) => item(`k${i}`, 'card', { front: `س${i}`, back: `ج${i}` }));
-    const onFinish = setup((f) => <CardsGame items={cards} config={{ streak: true }} onFinish={f} />);
+  it('Flashcard Streak shows the multiplier as the streak grows', async () => {
+    const cards: ClientQuestion[] = Array.from({ length: 4 }, (_, i) => ({ id: `k${i}`, kind: 'card', front: `س${i}`, back: `ج${i}` }));
+    setup(CardsGame, { questions: cards, config: { streak: true }, check: verdict({ correct: true }) });
     expect(screen.getByText(/المضاعف ×1/)).toBeTruthy();
-    for (let i = 0; i < 4; i++) {
-      fireEvent.click(screen.getByRole('button', { name: 'اعرض الإجابة' }));
+    for (let i = 0; i < 3; i++) {
+      fireEvent.click(await screen.findByRole('button', { name: 'اعرض الإجابة' }));
       fireEvent.click(screen.getByRole('button', { name: /عرفتها/ }));
-      if (i === 2) expect(screen.getByText(/المضاعف ×2/)).toBeTruthy();
+      await waitFor(() => expect(screen.queryByRole('button', { name: /عرفتها/ })).toBeNull());
     }
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 50, max: 50, details: { bestStreak: 4 } });
+    expect(await screen.findByText(/المضاعف ×2/)).toBeTruthy();
   });
 });
 
-describe('ladder engine', () => {
-  const ladder = item('l1', 'ladder', { start: 'cat', target: 'cot', words: ['cot'] });
-
-  function type(value: string) {
+describe('ladder screen', () => {
+  const ladder: ClientQuestion = { id: 'l1', kind: 'ladder', start: 'cat', target: 'cot', words: ['cot'] };
+  const type = (value: string) => {
     fireEvent.change(screen.getByLabelText(/الكلمة التالية/), { target: { value } });
     fireEvent.click(screen.getByRole('button', { name: 'أضف الخطوة' }));
-  }
+  };
 
-  it('rejects a step that changes two letters, or a different length, with a message', () => {
-    setup((f) => <LadderGame items={[ladder]} config={{}} onFinish={f} />);
+  it('rejects a step that changes two letters or the length, with a message, without asking the server', () => {
+    const check = verdict({ correct: true });
+    setup(LadderGame, { questions: [ladder], check });
     type('dog');
     expect(screen.getByRole('alert').textContent).toContain('حرفًا واحدًا');
     type('cats');
     expect(screen.getByRole('alert').textContent).toContain('بنفس عدد الحروف');
+    expect(check).not.toHaveBeenCalled();
   });
 
-  it('reaching the target finishes with a full score', () => {
-    const onFinish = setup((f) => <LadderGame items={[ladder]} config={{}} onFinish={f} />);
+  it('reaching the target sends the steps to the server and finishes', async () => {
+    const check = verdict({ correct: true });
+    const onDone = setup(LadderGame, { questions: [ladder], check });
     type('cot');
-    expect(screen.getByText('وصلت إلى الكلمة الهدف')).toBeTruthy();
+    expect(await screen.findByText('وصلت إلى الكلمة الهدف')).toBeTruthy();
+    expect(check).toHaveBeenCalledWith('l1', { steps: ['cot'] });
     fireEvent.click(screen.getByRole('button', { name: 'إنهاء اللعبة' }));
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 10, max: 10 });
+    expect(onDone).toHaveBeenCalledTimes(1);
   });
 
-  it('giving up scores 0 for that ladder', () => {
-    const onFinish = setup((f) => <LadderGame items={[ladder]} config={{}} onFinish={f} />);
+  it('giving up tells the server and moves on', async () => {
+    const check = verdict({ correct: false });
+    const onDone = setup(LadderGame, { questions: [ladder], check });
     fireEvent.click(screen.getByRole('button', { name: 'استسلم' }));
-    expect(onFinish.mock.calls[0]![0]).toMatchObject({ score: 0, max: 10 });
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
+    expect(check).toHaveBeenCalledWith('l1', { giveUp: true });
+  });
+});
+
+describe('Map Hunt screen', () => {
+  const place: ClientQuestion = { id: 'm1', kind: 'place', prompt: 'القدس', mapUrl: '/maps/palestine.png' };
+
+  it('the map can be used with the keyboard: arrow keys move the marker and Enter confirms', async () => {
+    const check = verdict({ correct: true, reveal: { x: 52, y: 50, radius: 5 } });
+    setup(MapGame, { questions: [place], check });
+    const map = screen.getByRole('group', { name: /خريطة للبحث عن القدس/ });
+    expect(map.getAttribute('tabindex')).toBe('0');
+    fireEvent.keyDown(map, { key: 'ArrowRight' });
+    expect(screen.getByText(/52٪ أفقيًا و50٪ عموديًا/)).toBeTruthy();
+    fireEvent.keyDown(map, { key: 'Enter' });
+    expect(await screen.findByText('إجابة صحيحة')).toBeTruthy();
+    expect(check).toHaveBeenCalledWith('m1', { x: 52, y: 50 });
+  });
+
+  it('a wrong guess shows the right spot in words as well as on the map', async () => {
+    setup(MapGame, { questions: [place], check: verdict({ correct: false, reveal: { x: 10, y: 10, radius: 5 } }) });
+    const map = screen.getByRole('group');
+    fireEvent.keyDown(map, { key: 'ArrowDown' });
+    fireEvent.click(screen.getByRole('button', { name: 'تأكيد المكان' }));
+    expect(await screen.findByText('إجابة خاطئة')).toBeTruthy();
+    expect(screen.getByText(/العلامة الخضراء/)).toBeTruthy();
+  });
+
+  it('cannot confirm before a place is marked', () => {
+    setup(MapGame, { questions: [place], check: verdict({ correct: true }) });
+    expect((screen.getByRole('button', { name: 'تأكيد المكان' }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('the map image is decorative (the place name is in the heading and the group label)', () => {
+    const { container } = render(<MapGame {...base} questions={[place]} check={verdict({ correct: true })} onDone={() => {}} />);
+    expect(container.querySelector('.game-map img')?.getAttribute('alt')).toBe('');
+  });
+});
+
+describe('Crossword screen', () => {
+  const layout: PublicLayout = { crossword: { rows: 3, cols: 5, entries: [
+    { id: 'w1', number: 1, row: 0, col: 0, dir: 'across', length: 5, clue: 'سائل نشربه' },
+    { id: 'w2', number: 2, row: 0, col: 2, dir: 'down', length: 3, clue: 'نبات كبير' },
+  ] } };
+
+  it('sends each full word to the server, marks right and wrong in words, and finishes only after a check', async () => {
+    const check: Check = vi.fn(async (id) => ({ correct: id === 'w1' }));
+    const onDone = setup(CrosswordGame, { layout, check });
+    expect((screen.getByRole('button', { name: 'إنهاء اللعبة' }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(screen.getByLabelText(/1\. أفقي/), { target: { value: 'water' } });
+    fireEvent.change(screen.getByLabelText(/2\. عمودي/), { target: { value: 'tre' } });
+    fireEvent.click(screen.getByRole('button', { name: 'تحقّق من الكلمات' }));
+    expect(await screen.findByText('صحيحة')).toBeTruthy();
+    expect(screen.getByText(/خاطئة، جرّب مرة أخرى/)).toBeTruthy();
+    expect(check).toHaveBeenCalledWith('w1', { word: 'water' });
+    fireEvent.click(screen.getByRole('button', { name: 'إنهاء اللعبة' }));
+    expect(onDone).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not send a word of the wrong length', async () => {
+    const check = verdict({ correct: true });
+    setup(CrosswordGame, { layout, check });
+    fireEvent.change(screen.getByLabelText(/1\. أفقي/), { target: { value: 'wat' } });
+    fireEvent.click(screen.getByRole('button', { name: 'تحقّق من الكلمات' }));
+    await waitFor(() => expect((screen.getByRole('button', { name: 'تحقّق من الكلمات' }) as HTMLButtonElement).disabled).toBe(false));
+    expect(check).not.toHaveBeenCalled();
+  });
+
+  it('every clue has a labelled input, so the puzzle works without the mouse', () => {
+    setup(CrosswordGame, { layout, check: verdict({ correct: true }) });
+    expect(screen.getAllByRole('textbox')).toHaveLength(2);
   });
 });

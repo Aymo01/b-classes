@@ -2,8 +2,8 @@
 
 export type GameEngine = 'choice' | 'pair' | 'order' | 'cards' | 'ladder' | 'map' | 'duel' | 'crossword';
 
-/** Engines that have a play screen. The rest are listed in the menu with a "coming soon" label. */
-export const playableEngines: readonly GameEngine[] = ['choice', 'pair', 'order', 'cards', 'ladder'];
+/** Every engine now has a play screen. */
+export const playableEngines: readonly GameEngine[] = ['choice', 'pair', 'order', 'cards', 'ladder', 'map', 'duel', 'crossword'];
 export const isPlayable = (engine: GameEngine) => playableEngines.includes(engine);
 
 export type GameRow = {
@@ -165,7 +165,7 @@ export function requeueMissed<T>(queue: readonly T[], card: T, gap = 3): T[] {
 }
 
 /** The topic with the most wrong answers (ties go to the first topic seen). null when nothing was missed. */
-export function weakestTopic(wrong: { topic: string | null }[]): string | null {
+export function weakestTopic(wrong: readonly { topic: string | null }[]): string | null {
   const counts = new Map<string, number>();
   for (const w of wrong) if (w.topic) counts.set(w.topic, (counts.get(w.topic) ?? 0) + 1);
   let best: string | null = null;
