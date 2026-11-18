@@ -35,10 +35,13 @@ export function cleanMessageBody(body: string) {
   return trimmed.length > 0 && trimmed.length <= MAX_MESSAGE_LENGTH ? trimmed : null;
 }
 
+/** Value of the `tab` search param that opens the Messages tab in the teacher and parent areas. */
+export const MESSAGES_TAB = 'inbox';
+
 /** Teachers reply inside the teacher area; parents stay in the parent area. */
 export function conversationLink(role: MessagingRole, conversationId: string) {
-  if (role === 'teacher') return { to: '/teacher', search: { tab: 'messages', c: conversationId } } as const;
-  if (role === 'parent') return { to: '/parent', search: { c: conversationId } } as const;
+  if (role === 'teacher') return { to: '/teacher', search: { tab: MESSAGES_TAB, c: conversationId } } as const;
+  if (role === 'parent') return { to: '/parent', search: { tab: MESSAGES_TAB, c: conversationId } } as const;
   return { to: '/messages', search: { c: conversationId } } as const;
 }
 

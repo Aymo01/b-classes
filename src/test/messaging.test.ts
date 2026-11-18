@@ -31,8 +31,8 @@ describe('messaging rules', () => {
   });
 
   it('opens a conversation in the area the viewer replies from', () => {
-    expect(conversationLink('teacher', 'c1')).toEqual({ to: '/teacher', search: { tab: 'messages', c: 'c1' } });
-    expect(conversationLink('parent', 'c1').to).toBe('/parent');
+    expect(conversationLink('teacher', 'c1')).toEqual({ to: '/teacher', search: { tab: 'inbox', c: 'c1' } });
+    expect(conversationLink('parent', 'c1')).toEqual({ to: '/parent', search: { tab: 'inbox', c: 'c1' } });
     expect(conversationLink('student', 'c1').to).toBe('/messages');
   });
 });
