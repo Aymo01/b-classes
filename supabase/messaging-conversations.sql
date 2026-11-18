@@ -7,6 +7,9 @@ DROP TABLE IF EXISTS public.messages;
 -- Step 2: conversations design from the messaging branch, with two fixes.
 -- Messaging between a teacher and a student or a student's parent. No attachments.
 
+DROP TABLE IF EXISTS public.conversations CASCADE;
+DROP FUNCTION IF EXISTS public.notify_new_message();
+
 CREATE TABLE public.conversations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   teacher_id uuid NOT NULL,
@@ -16,6 +19,8 @@ CREATE TABLE public.conversations (
   UNIQUE (teacher_id, participant_id, student_id),
   CHECK (teacher_id <> participant_id)
 );
+
+DROP TABLE IF EXISTS public.messages CASCADE;
 
 CREATE TABLE public.messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -29,7 +34,7 @@ CREATE INDEX messages_conversation_created_idx ON public.messages (conversation_
 
 -- A notification can point back at the conversation it came from.
 ALTER TABLE public.notifications
-  ADD COLUMN conversation_id uuid REFERENCES public.conversations(id) ON DELETE CASCADE;
+  ADD COLUMN IF NOT EXISTS conversation_id uuid REFERENCES public.conversations(id) ON DELETE CASCADE;
 
 GRANT SELECT, INSERT ON public.conversations TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON public.messages TO authenticated;
@@ -47,7 +52,7 @@ CREATE POLICY "participants read conversations" ON public.conversations FOR SELE
 CREATE POLICY "participant starts conversation" ON public.conversations FOR INSERT TO authenticated
   WITH CHECK (
     participant_id = auth.uid()
-    AND (public.has_role('teacher', teacher_id) OR public.has_role('admin', teacher_id))
+    AND (public.has_role(_role => 'teacher', _user_id => teacher_id) OR public.has_role(_role => 'admin', _user_id => teacher_id))
     AND EXISTS (SELECT 1 FROM public.enrollments e WHERE e.teacher_id = conversations.teacher_id AND e.student_id = conversations.student_id)
     AND (
       student_id = auth.uid()
