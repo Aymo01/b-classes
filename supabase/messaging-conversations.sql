@@ -1,3 +1,4 @@
+-- Requires supabase/enrollments.sql to have been run first (the conversation policy reads enrollments).
 -- Step 1 (run first): drop the messages table from our earlier SQL. Only safe if it is empty.
 -- SELECT count(*) FROM public.messages;  -- must return 0 before continuing
 DROP FUNCTION IF EXISTS public.send_message(uuid, text);
@@ -82,6 +83,16 @@ CREATE POLICY "recipient marks messages read" ON public.messages FOR UPDATE TO a
     WHERE c.id = conversation_id AND auth.uid() IN (c.teacher_id, c.participant_id)
   ))
   WITH CHECK (sender_id <> auth.uid());
+
+-- Participants can read each other's names (and the student's name) to label the inbox.
+-- Created here, after the table, because dropping conversations above would drop it.
+DROP POLICY IF EXISTS "read conversation counterparts" ON public.profiles;
+CREATE POLICY "read conversation counterparts" ON public.profiles FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.conversations c
+    WHERE auth.uid() IN (c.teacher_id, c.participant_id)
+      AND profiles.id IN (c.teacher_id, c.participant_id, c.student_id)
+  ));
 
 -- Every new message notifies the other participant.
 CREATE OR REPLACE FUNCTION public.notify_new_message()

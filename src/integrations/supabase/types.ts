@@ -584,6 +584,13 @@ export type Database = {
         Returns: boolean
       }
       link_parent_by_code: { Args: { _code: string }; Returns: string }
+      list_teachers: {
+        Args: never
+        Returns: {
+          display_name: string | null
+          id: string
+        }[]
+      }
       submit_quiz: { Args: { _answers: Json; _quiz_id: string }; Returns: Json }
     }
     Enums: {
