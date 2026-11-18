@@ -224,6 +224,7 @@ export type Database = {
           grade: number | null
           id: string
           invite_code: string
+          managed_by_parent: string | null
           updated_at: string
         }
         Insert: {
@@ -232,6 +233,7 @@ export type Database = {
           grade?: number | null
           id: string
           invite_code?: string
+          managed_by_parent?: string | null
           updated_at?: string
         }
         Update: {
@@ -240,6 +242,7 @@ export type Database = {
           grade?: number | null
           id?: string
           invite_code?: string
+          managed_by_parent?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -483,6 +486,10 @@ export type Database = {
         }[]
       }
       admin_remove_teacher: { Args: { _email: string }; Returns: undefined }
+      create_child_profile: {
+        Args: { _display_name: string; _grade: number }
+        Returns: string
+      }
       get_quiz_questions: {
         Args: { _quiz_id: string }
         Returns: {
