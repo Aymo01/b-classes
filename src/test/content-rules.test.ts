@@ -10,7 +10,7 @@ describe('Grade labels', () => {
   });
   it('labels secondary grades distinctly', () => {
     expect(gradeLabel(11)).toBe('الأول الثانوي');
-    expect(gradeLabel(12)).toBe('الثاني الثانوي');
+    expect(gradeLabel(12)).toBe('التوجيهي');
   });
   it('names the two single-grade secondary stages after their grade', () => {
     const byId = Object.fromEntries(stages.map((s) => [s.id, s]));
