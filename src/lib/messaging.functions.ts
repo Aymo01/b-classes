@@ -185,8 +185,10 @@ export const getMessagingTargets = createServerFn({ method: 'GET' })
       students = studentIds.map((id) => ({ id, name: childNames[id] || 'طالب' }));
     }
     if (studentIds.length === 0) return { teachers: [], students };
-    const { data: enrollments } = await supabase.from('enrollments').select('teacher_id').in('student_id', studentIds);
+    const { data: enrollments } = await supabase.from('enrollments').select('teacher_id, student_id').in('student_id', studentIds);
     const teacherIds = [...new Set((enrollments ?? []).map((e) => e.teacher_id))];
     const names = await displayNames(supabase, teacherIds);
-    return { teachers: teacherIds.map((id) => ({ id, name: names[id] || 'المعلم' })), students };
+    return { teachers: teacherIds.map((id) => ({ id, name: names[id] || 'المعلم', studentIds: (enrollments ?? []).filter((e) => e.teacher_id === id).map((e) => e.student_id) })),
+      students,
+    };
   });

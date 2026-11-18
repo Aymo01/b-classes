@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyState } from '@/components/student-workspace';
 import { useConversations, useMessagingTargets, useMessagingViewer, useSendMessage, useStartConversation, useThread, useUnreadMessages } from '@/lib/messaging/hooks';
-import { MAX_MESSAGE_LENGTH, type MessagingRole } from '@/lib/messaging/logic';
+import { conversationsForStudent, limitToStudent, MAX_MESSAGE_LENGTH, type MessagingRole } from '@/lib/messaging/logic';
 
 const otherRoleLabel: Record<MessagingRole, string> = { teacher: 'المعلم', parent: 'ولي الأمر', student: 'الطالب' };
 
@@ -58,8 +58,9 @@ function Thread({ conversationId, heading }: { conversationId: string; heading: 
   );
 }
 
-function NewConversation({ role, onStarted }: { role: MessagingRole; onStarted: (id: string) => void }) {
-  const { data: targets } = useMessagingTargets();
+function NewConversation({ role, studentId: onlyStudentId, onStarted }: { role: MessagingRole; studentId?: string | undefined; onStarted: (id: string) => void }) {
+  const { data: allTargets } = useMessagingTargets();
+  const targets = allTargets && onlyStudentId ? limitToStudent(allTargets, onlyStudentId) : allTargets;
   const teachers = targets?.teachers ?? [];
   const students = targets?.students ?? [];
   const viewer = useMessagingViewer();
@@ -101,10 +102,14 @@ function NewConversation({ role, onStarted }: { role: MessagingRole; onStarted: 
 /**
  * Inbox + thread. Teachers only reply; students and parents can also start a conversation.
  * The selected conversation is owned by the caller so notifications can deep-link to it.
+ * With `studentId` (parent area) it is limited to that child and the teachers the child is enrolled with.
  */
-export function MessagesPanel({ selectedId, onSelect }: { selectedId: string | undefined; onSelect: (id: string | undefined) => void }) {
+export function MessagesPanel({ selectedId, onSelect, studentId }: { selectedId: string | undefined; onSelect: (id: string | undefined) => void; studentId?: string | undefined }) {
   const viewer = useMessagingViewer();
-  const { data: conversations, isLoading } = useConversations();
+  const { data: allConversations, isLoading: conversationsLoading } = useConversations();
+  const { data: targets, isLoading: targetsLoading } = useMessagingTargets(!!studentId);
+  const isLoading = conversationsLoading || (!!studentId && targetsLoading);
+  const conversations = studentId && allConversations ? conversationsForStudent(allConversations, targets?.teachers ?? [], studentId) : allConversations;
   const [composing, setComposing] = useState(false);
 
   if (!viewer || isLoading) return <div className="study-empty" role="status"><Loader2 className="animate-spin" size={28} /><p>جارٍ تحميل الرسائل...</p></div>;
@@ -137,7 +142,7 @@ export function MessagesPanel({ selectedId, onSelect }: { selectedId: string | u
       </aside>
       <div className="message-main">
         {selected ? <Thread conversationId={selected.id} heading={heading} />
-          : composing && canStart ? <NewConversation role={viewer.role} onStarted={(id) => { setComposing(false); onSelect(id); }} />
+          : composing && canStart ? <NewConversation role={viewer.role} studentId={studentId} onStarted={(id) => { setComposing(false); onSelect(id); }} />
           : <EmptyState icon={MessageSquare} title="اختر محادثة" text="اختر محادثة من القائمة لعرض الرسائل." />}
       </div>
     </div>

@@ -47,6 +47,8 @@ export function conversationLink(role: MessagingRole, conversationId: string) {
 
 export type ConversationSummary = {
   id: string;
+  teacherId: string;
+  studentId: string;
   otherName: string;
   studentName: string;
   /** What the other participant is to the student, e.g. «ولي الأمر». */
@@ -77,6 +79,8 @@ export function buildConversationSummaries(
       const otherId = viewerId === c.teacherId ? c.participantId : c.teacherId;
       return {
         id: c.id,
+        teacherId: c.teacherId,
+        studentId: c.studentId,
         otherName: names[otherId] || 'مستخدم',
         studentName: names[c.studentId] || 'طالب',
         otherRole: senderRole(c, otherId)!,
@@ -96,5 +100,19 @@ export function toMessageItems(viewerId: string, messages: MessageRow[]): Messag
 
 export type MessagingPerson = { id: string; name: string };
 
+/** A teacher a conversation can be started with, and which of the viewer's students are enrolled with them. */
+export type MessagingTeacher = MessagingPerson & { studentIds: string[] };
+
+/** Keep only what concerns one child: that child, and the teachers the child is enrolled with. */
+export function limitToStudent<T extends { teachers: MessagingTeacher[]; students: MessagingPerson[] }>(targets: T, studentId: string): T {
+  return { ...targets, teachers: targets.teachers.filter((t) => t.studentIds.includes(studentId)), students: targets.students.filter((s) => s.id === studentId) };
+}
+
+/** Conversations about one child with a teacher the child is currently enrolled with. */
+export function conversationsForStudent<T extends { teacherId: string; studentId: string }>(conversations: T[], teachers: MessagingTeacher[], studentId: string): T[] {
+  const allowed = new Set(teachers.filter((t) => t.studentIds.includes(studentId)).map((t) => t.id));
+  return conversations.filter((c) => c.studentId === studentId && allowed.has(c.teacherId));
+}
+
 /** Who the viewer can write to (teachers) and about (students; empty for a student, who writes about themself). */
-export type MessagingTargets = { teachers: MessagingPerson[]; students: MessagingPerson[] };
+export type MessagingTargets = { teachers: MessagingTeacher[]; students: MessagingPerson[] };

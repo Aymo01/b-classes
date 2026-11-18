@@ -46,9 +46,9 @@ export function useThread(conversationId: string | undefined) {
 }
 
 /** Teachers (and, for a parent, children) a new conversation can be started with. */
-export function useMessagingTargets() {
+export function useMessagingTargets(enabled = true) {
   const viewer = useMessagingViewer();
-  return useQuery({ queryKey: ['messages', 'targets', viewer?.id], queryFn: () => getMessagingTargets(), enabled: !!viewer });
+  return useQuery({ queryKey: ['messages', 'targets', viewer?.id], queryFn: () => getMessagingTargets(), enabled: !!viewer && enabled });
 }
 
 export function useMessageNotifications() {

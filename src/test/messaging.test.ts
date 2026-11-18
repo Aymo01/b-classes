@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildConversationSummaries, cleanMessageBody, conversationLink, isParticipant, messageNotificationTitle, senderRole, toMessageItems, type ConversationRecord, type MessageRow } from '@/lib/messaging/logic';
+import { buildConversationSummaries, conversationsForStudent, limitToStudent, cleanMessageBody, conversationLink, isParticipant, messageNotificationTitle, senderRole, toMessageItems, type ConversationRecord, type MessageRow } from '@/lib/messaging/logic';
 
 const asParent: ConversationRecord = { id: 'c', teacherId: 't', participantId: 'p', studentId: 's', createdAt: '' };
 const asStudent: ConversationRecord = { id: 'c', teacherId: 't', participantId: 's', studentId: 's', createdAt: '' };
@@ -70,5 +70,30 @@ describe('conversation summaries', () => {
     expect(items.map((m) => m.id)).toEqual(['m1', 'm2']);
     expect(items.every((m) => m.mine)).toBe(true);
     expect(toMessageItems('t', messages.slice(0, 2)).every((m) => !m.mine)).toBe(true);
+  });
+});
+
+describe('parent area is limited to the child and the teacher the child chose', () => {
+  const teachers = [
+    { id: 't1', name: 'سارة', studentIds: ['leo'] },
+    { id: 't2', name: 'خالد', studentIds: ['noor'] },
+  ];
+  const conversations = [
+    { id: 'a', teacherId: 't1', studentId: 'leo' },
+    { id: 'b', teacherId: 't2', studentId: 'leo' }, // leo left t2
+    { id: 'c', teacherId: 't2', studentId: 'noor' },
+  ];
+
+  it('keeps only conversations about this child with a teacher they are enrolled with', () => {
+    expect(conversationsForStudent(conversations, teachers, 'leo').map((c) => c.id)).toEqual(['a']);
+    expect(conversationsForStudent(conversations, teachers, 'noor').map((c) => c.id)).toEqual(['c']);
+    expect(conversationsForStudent(conversations, teachers, 'nobody')).toEqual([]);
+  });
+
+  it('offers only that child and their teachers when starting a conversation', () => {
+    const targets = { teachers, students: [{ id: 'leo', name: 'ليو' }, { id: 'noor', name: 'نور' }] };
+    const limited = limitToStudent(targets, 'leo');
+    expect(limited.teachers.map((t) => t.id)).toEqual(['t1']);
+    expect(limited.students.map((s) => s.id)).toEqual(['leo']);
   });
 });

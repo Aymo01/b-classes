@@ -1,21 +1,30 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { BookOpen, CheckCircle2, ClipboardList, FileQuestion, Link2, Loader2, Users } from 'lucide-react';
+import { BookOpen, CheckCircle2, ClipboardList, FileQuestion, Link2, Loader2, MessageSquare, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmptyState, StudentWorkspace } from '@/components/student-workspace';
+import { MessagesPanel, UnreadBadge } from '@/components/messages-panel';
+import { MESSAGES_TAB } from '@/lib/messaging/logic';
 import { getMyProfile, getStudentOverview, linkChildByCode, listMyChildren } from '@/lib/profile.functions';
 import { gradeLabel, type Grade } from '@/lib/grades';
 import { pageMeta } from '@/lib/page-meta';
 
 export const Route = createFileRoute('/_authenticated/parent')({
   head: () => pageMeta('منطقة ولي الأمر', 'تابع تقدّم أبنائك الدراسي في B classes.'),
+  validateSearch: (search: Record<string, unknown>): { tab?: string | undefined; c?: string | undefined } => ({
+    tab: typeof search['tab'] === 'string' ? search['tab'] : undefined,
+    c: typeof search['c'] === 'string' ? search['c'] : undefined,
+  }),
   component: ParentPage,
 });
 
 function ParentPage() {
   const queryClient = useQueryClient();
+  const { tab, c } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const { data: me } = useQuery({ queryKey: ['my-profile'], queryFn: () => getMyProfile() });
   const { data: childrenData, isLoading } = useQuery({ queryKey: ['my-children'], queryFn: () => listMyChildren() });
   const [code, setCode] = useState('');
@@ -81,6 +90,12 @@ function ParentPage() {
               </Button>
             ))}
           </div>
+          <Tabs value={tab ?? (c ? MESSAGES_TAB : 'progress')} onValueChange={(value) => void navigate({ search: { tab: value } })} dir="rtl">
+            <TabsList className="teacher-tabs">
+              <TabsTrigger value="progress"><BookOpen />التقدّم</TabsTrigger>
+              <TabsTrigger value={MESSAGES_TAB}><MessageSquare />الرسائل<UnreadBadge /></TabsTrigger>
+            </TabsList>
+            <TabsContent value="progress">
           {overview ? (
             <>
               <div className="study-metrics">
@@ -100,6 +115,11 @@ function ParentPage() {
           ) : (
             <div className="study-empty" role="status"><Loader2 className="animate-spin" size={28} /><p>جارٍ تحميل التقدّم...</p></div>
           )}
+            </TabsContent>
+            <TabsContent value={MESSAGES_TAB}>
+              <MessagesPanel selectedId={c} studentId={activeChild ?? undefined} onSelect={(id) => void navigate({ search: { tab: MESSAGES_TAB, c: id } })} />
+            </TabsContent>
+          </Tabs>
         </>
       )}
     </StudentWorkspace>
