@@ -66,6 +66,12 @@ function TeacherPage() {
   }
 
   const subjects = data?.subjects ?? [];
+  // Only the content tabs wait on the content query; Students and Messages never do.
+  const contentGate = isLoading
+    ? <div className="study-empty" role="status"><Loader2 className="animate-spin" size={28} /><p>جارٍ التحميل...</p></div>
+    : error
+      ? <EmptyState icon={Wrench} title="تعذر تحميل المحتوى" text="حدث خطأ غير متوقع. حاول تحديث الصفحة." />
+      : null;
 
   function ContentList({ rows, table, icon: Icon }: { rows: { id: string; title: string; meta: string; subjectTitle: string; grade: number }[]; table: 'lessons' | 'classes' | 'assignments' | 'quizzes'; icon: typeof Play }) {
     if (rows.length === 0) return <EmptyState icon={Icon} title="لا يوجد محتوى بعد" text="أضف أول عنصر من النموذج أدناه." />;
@@ -88,9 +94,6 @@ function TeacherPage() {
   return (
     <StudentWorkspace title="منطقة المعلم" subtitle="أضف المواد والدروس والحصص والواجبات والاختبارات، وتابع تسليمات الطلاب.">
       {message && <p className="auth-notice" role="status"><Check size={16} />{message}</p>}
-      {isLoading ? <div className="study-empty" role="status"><Loader2 className="animate-spin" size={28} /><p>جارٍ التحميل...</p></div> : error ? (
-        <EmptyState icon={Wrench} title="تعذر تحميل المحتوى" text="حدث خطأ غير متوقع. حاول تحديث الصفحة." />
-      ) : (
         <Tabs value={tab ?? 'subjects'} onValueChange={(value) => void navigate({ search: { tab: value } })} dir="rtl">
           <TabsList className="teacher-tabs">
             <TabsTrigger value="subjects"><BookOpen />المواد</TabsTrigger>
@@ -104,6 +107,8 @@ function TeacherPage() {
           </TabsList>
 
           <TabsContent value="subjects">
+            {contentGate ?? (
+              <>
             <SubjectForm onDone={() => { void invalidate(); setMessage('تم إنشاء المادة.'); }} />
             <div className="content-list">
               {subjects.map((s) => (
@@ -113,30 +118,52 @@ function TeacherPage() {
                 </div>
               ))}
             </div>
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="lessons">
+            {contentGate ?? (
+              <>
             <LessonForm subjects={subjects} onDone={() => { void invalidate(); setMessage('تم إنشاء الدرس وإشعار الطلاب.'); }} />
             <ContentList rows={data?.lessons ?? []} table="lessons" icon={Play} />
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="classes">
+            {contentGate ?? (
+              <>
             <ClassForm subjects={subjects} onDone={() => { void invalidate(); setMessage('تمت جدولة الحصة وإشعار الطلاب.'); }} />
             <ContentList rows={data?.classes ?? []} table="classes" icon={Video} />
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="assignments">
+            {contentGate ?? (
+              <>
             <AssignmentForm subjects={subjects} onDone={() => { void invalidate(); setMessage('تم إنشاء الواجب وإشعار الطلاب.'); }} />
             <ContentList rows={data?.assignments ?? []} table="assignments" icon={ClipboardList} />
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="quizzes">
+            {contentGate ?? (
+              <>
             <QuizForm subjects={subjects} onDone={() => { void invalidate(); setMessage('تم إنشاء الاختبار وإشعار الطلاب.'); }} />
             <ContentList rows={data?.quizzes ?? []} table="quizzes" icon={FileQuestion} />
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="submissions">
+            {contentGate ?? (
+              <>
             <SubmissionsList rows={data?.submissions ?? []} onGraded={() => { void invalidate(); setMessage('تم حفظ التقييم.'); }} />
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="students">
@@ -157,7 +184,6 @@ function TeacherPage() {
             <MessagesPanel selectedId={c} onSelect={(id) => void navigate({ search: { tab: MESSAGES_TAB, c: id } })} />
           </TabsContent>
         </Tabs>
-      )}
     </StudentWorkspace>
   );
 }
