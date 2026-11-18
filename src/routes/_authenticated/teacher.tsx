@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { BookOpen, Check, ClipboardList, FileQuestion, Loader2, Play, Plus, Trash2, Video, Wrench } from 'lucide-react';
+import { BookOpen, Check, ClipboardList, FileQuestion, Loader2, Play, Plus, Trash2, UsersRound, Video, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmptyState, StudentWorkspace } from '@/components/student-workspace';
 import { createAssignment, createClass, createLesson, createQuiz, createSubject, deleteContent, gradeSubmission, listTeacherContent } from '@/lib/teacher.functions';
 import { getMyProfile } from '@/lib/profile.functions';
+import { listMyStudents } from '@/lib/enrollment.functions';
 import { gradeLabel, type Grade } from '@/lib/grades';
 import { pageMeta } from '@/lib/page-meta';
 
@@ -40,6 +41,7 @@ function TeacherPage() {
   const { data: me } = useQuery({ queryKey: ['my-profile'], queryFn: () => getMyProfile() });
   const isEditor = (me?.roles ?? []).some((r) => r === 'teacher' || r === 'admin');
   const { data, isLoading, error } = useQuery({ queryKey: ['teacher-content'], queryFn: () => listTeacherContent(), enabled: isEditor });
+  const { data: students, isLoading: studentsLoading } = useQuery({ queryKey: ['my-students'], queryFn: () => listMyStudents(), enabled: isEditor });
   const [message, setMessage] = useState<string | null>(null);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['teacher-content'] });
@@ -89,6 +91,7 @@ function TeacherPage() {
             <TabsTrigger value="assignments"><ClipboardList />الواجبات</TabsTrigger>
             <TabsTrigger value="quizzes"><FileQuestion />الاختبارات</TabsTrigger>
             <TabsTrigger value="submissions"><Check />التسليمات</TabsTrigger>
+            <TabsTrigger value="students"><UsersRound />طلابي</TabsTrigger>
           </TabsList>
 
           <TabsContent value="subjects">
@@ -125,6 +128,20 @@ function TeacherPage() {
 
           <TabsContent value="submissions">
             <SubmissionsList rows={data?.submissions ?? []} onGraded={() => { void invalidate(); setMessage('تم حفظ التقييم.'); }} />
+          </TabsContent>
+
+          <TabsContent value="students">
+            {studentsLoading ? <div className="study-empty" role="status"><Loader2 className="animate-spin" size={28} /></div> : !students || students.length === 0 ? (
+              <EmptyState icon={UsersRound} title="لا يوجد طلاب مسجلون معك بعد" text="سيظهر هنا الطلاب الذين يسجلون معك من صفحة «معلمي»." />
+            ) : (
+              <div className="content-list">
+                {students.map((s) => (
+                  <div className="content-card" key={s.id}>
+                    <div><span className="content-card-kicker">{s.grade ? gradeLabel(s.grade as Grade) : 'بدون صف'}</span><h3>{s.name}</h3></div>
+                  </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       )}

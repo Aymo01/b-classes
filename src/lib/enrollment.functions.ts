@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import { requireApprovedMember } from '@/lib/access/middleware';
-import { toTeacherOptions, type TeacherOption } from '@/lib/enrollment/logic';
+import { toRoster, toTeacherOptions, type EnrolledStudent, type TeacherOption } from '@/lib/enrollment/logic';
 
 const isStudent = (roles: string[]) => roles.includes('student');
 
@@ -35,4 +35,18 @@ export const leaveTeacher = createServerFn({ method: 'POST' })
     const { error } = await context.supabase.from('enrollments').delete().eq('student_id', context.userId).eq('teacher_id', data.teacherId);
     if (error) throw new Error('تعذر إلغاء التسجيل.');
     return { ok: true };
+  });
+
+/** The logged-in teacher's own roster, never other teachers' students. */
+export const listMyStudents = createServerFn({ method: 'GET' })
+  .middleware([requireApprovedMember])
+  .handler(async ({ context }): Promise<EnrolledStudent[]> => {
+    const { supabase, userId } = context;
+    const roles = context.access.roles as string[];
+    if (!roles.includes('teacher') && !roles.includes('admin')) throw new Error('هذه الصلاحية متاحة للمعلمين فقط.');
+    const { data: enrollments } = await supabase.from('enrollments').select('student_id, teacher_id, created_at').eq('teacher_id', userId);
+    const ids = [...new Set((enrollments ?? []).map((e) => e.student_id))];
+    if (ids.length === 0) return [];
+    const { data: profiles } = await supabase.from('profiles').select('id, display_name, grade').in('id', ids);
+    return toRoster(userId, enrollments ?? [], profiles ?? []);
   });
