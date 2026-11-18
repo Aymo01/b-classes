@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable';
 import { useSession } from '@/lib/session';
 import { pageMeta } from '@/lib/page-meta';
+import { getMyProfile } from '@/lib/profile.functions';
 
 export const Route = createFileRoute('/auth')({
   validateSearch: (search: Record<string, unknown>): { redirect?: string | undefined } => ({
@@ -30,11 +31,17 @@ function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!loading && user) void navigate({ to: redirectTo ?? '/dashboard' });
-  }, [loading, user, navigate, redirectTo]);
+  // An explicit redirect wins. Otherwise students with no saved grade pick one first.
+  async function afterSignIn(): Promise<string> {
+    if (redirectTo) return redirectTo;
+    const { profile } = await getMyProfile().catch(() => ({ profile: null }));
+    return profile?.grade ? '/dashboard' : '/grades';
+  }
 
-  const destination = redirectTo ?? '/dashboard';
+  useEffect(() => {
+    if (!loading && user) void afterSignIn().then((to) => navigate({ to }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user, navigate, redirectTo]);
 
   async function handleEmail(event: React.FormEvent) {
     event.preventDefault();
@@ -45,7 +52,7 @@ function AuthPage() {
       if (mode === 'signin') {
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) throw new Error('بيانات الدخول غير صحيحة. تأكد من البريد وكلمة المرور.');
-        void navigate({ to: destination });
+        void navigate({ to: await afterSignIn() });
       } else if (mode === 'signup') {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
@@ -59,7 +66,7 @@ function AuthPage() {
         if (!data.session) {
           setNotice('تم إنشاء حسابك. تحقق من بريدك الإلكتروني لتأكيد الحساب ثم سجّل دخولك.');
         } else {
-          void navigate({ to: destination });
+          void navigate({ to: await afterSignIn() });
         }
       } else {
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
