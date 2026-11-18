@@ -4,9 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyState } from '@/components/student-workspace';
-import { useConversations, useMessagingViewer, useSendMessage, useStartConversation, useThread, useUnreadMessages } from '@/lib/messaging/hooks';
+import { useConversations, useMessagingTargets, useMessagingViewer, useSendMessage, useStartConversation, useThread, useUnreadMessages } from '@/lib/messaging/hooks';
 import { MAX_MESSAGE_LENGTH, type MessagingRole } from '@/lib/messaging/logic';
-import { mockMessaging } from '@/lib/messaging/mock-store';
 
 const otherRoleLabel: Record<MessagingRole, string> = { teacher: 'المعلم', parent: 'ولي الأمر', student: 'الطالب' };
 
@@ -60,10 +59,15 @@ function Thread({ conversationId, heading }: { conversationId: string; heading: 
 }
 
 function NewConversation({ role, onStarted }: { role: MessagingRole; onStarted: (id: string) => void }) {
-  const teachers = mockMessaging.teachers();
-  const students = mockMessaging.studentsFor(role);
-  const [teacherId, setTeacherId] = useState(teachers[0]?.id ?? '');
-  const [studentId, setStudentId] = useState(students[0]?.id ?? '');
+  const { data: targets } = useMessagingTargets();
+  const teachers = targets?.teachers ?? [];
+  const students = targets?.students ?? [];
+  const viewer = useMessagingViewer();
+  const [pickedTeacherId, setTeacherId] = useState('');
+  const [pickedStudentId, setStudentId] = useState('');
+  const teacherId = pickedTeacherId || teachers[0]?.id || '';
+  // A student writes about themself; a parent picks one of their children.
+  const studentId = role === 'parent' ? pickedStudentId || students[0]?.id || '' : viewer?.id ?? '';
   const start = useStartConversation();
   return (
     <div className="teacher-form message-new">

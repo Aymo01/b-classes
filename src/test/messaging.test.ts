@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cleanMessageBody, conversationLink, isParticipant, messageNotificationTitle, senderRole, type ConversationRecord } from '@/lib/messaging/logic';
-import { mockMessaging, mockUsers } from '@/lib/messaging/mock-store';
+import { buildConversationSummaries, cleanMessageBody, conversationLink, isParticipant, messageNotificationTitle, senderRole, toMessageItems, type ConversationRecord, type MessageRow } from '@/lib/messaging/logic';
 
 const asParent: ConversationRecord = { id: 'c', teacherId: 't', participantId: 'p', studentId: 's', createdAt: '' };
 const asStudent: ConversationRecord = { id: 'c', teacherId: 't', participantId: 's', studentId: 's', createdAt: '' };
@@ -38,27 +37,38 @@ describe('messaging rules', () => {
   });
 });
 
-describe('mock messaging store', () => {
-  it('hides other people\'s conversations and refuses access to them', async () => {
-    const list = await mockMessaging.listConversations(mockUsers.teacher.id);
-    expect(list.some((c) => c.id === 'conv-noor-other-teacher')).toBe(false);
-    await expect(mockMessaging.listThread(mockUsers.teacher.id, 'conv-noor-other-teacher')).rejects.toThrow();
-    await expect(mockMessaging.send(mockUsers.student.id, 'conv-leo-parent', 'مرحبا')).rejects.toThrow();
+describe('conversation summaries', () => {
+  const at = (m: number) => new Date(Date.UTC(2026, 0, 1, 0, m)).toISOString();
+  const conversations: ConversationRecord[] = [
+    { id: 'c1', teacherId: 't', participantId: 's', studentId: 's', createdAt: at(0) },
+    { id: 'c2', teacherId: 't', participantId: 'p', studentId: 's', createdAt: at(1) },
+    { id: 'other', teacherId: 't2', participantId: 'p2', studentId: 's2', createdAt: at(2) },
+  ];
+  const msg = (id: string, conversationId: string, senderId: string, createdAt: string, readAt: string | null = null): MessageRow => ({ id, conversationId, senderId, body: `body ${id}`, readAt, createdAt });
+  const messages = [msg('m1', 'c1', 's', at(10), at(11)), msg('m2', 'c1', 's', at(20)), msg('m3', 'c2', 't', at(30)), msg('m4', 'other', 'p2', at(40))];
+  const names = { t: 'سارة', s: 'ليو', p: 'والد ليو' };
+
+  it('shows the teacher only their own conversations, with unread counts and the newest first', () => {
+    const list = buildConversationSummaries('t', conversations, messages, names);
+    expect(list.map((c) => c.id)).toEqual(['c2', 'c1']);
+    expect(list.find((c) => c.id === 'c1')).toMatchObject({ otherName: 'ليو', otherRole: 'student', unread: 1, lastMessage: 'body m2' });
+    expect(list.find((c) => c.id === 'c2')).toMatchObject({ otherName: 'والد ليو', otherRole: 'parent', studentName: 'ليو', unread: 0 });
   });
 
-  it('notifies the teacher with kind message when a student or parent sends', async () => {
-    await mockMessaging.send(mockUsers.student.id, 'conv-leo', 'سؤال جديد');
-    await mockMessaging.send(mockUsers.parent.id, 'conv-leo-parent', 'شكرًا');
-    const notes = await mockMessaging.listNotifications(mockUsers.teacher.id);
-    expect(notes.every((n) => n.kind === 'message')).toBe(true);
-    expect(notes.some((n) => n.title === 'ليو أرسل لك رسالة' && n.conversationId === 'conv-leo')).toBe(true);
-    expect(notes.some((n) => n.title === 'ولي أمر ليو أرسل لك رسالة' && n.conversationId === 'conv-leo-parent')).toBe(true);
+  it('never includes conversations the viewer is not part of', () => {
+    expect(buildConversationSummaries('s', conversations, messages, names).map((c) => c.id)).toEqual(['c1']);
+    expect(buildConversationSummaries('nobody', conversations, messages, names)).toEqual([]);
   });
 
-  it('clears the unread count once the recipient reads the conversation', async () => {
-    const before = await mockMessaging.unreadCount(mockUsers.teacher.id);
-    expect(before).toBeGreaterThan(0);
-    await mockMessaging.markRead(mockUsers.teacher.id, 'conv-leo');
-    expect(await mockMessaging.unreadCount(mockUsers.teacher.id)).toBeLessThan(before);
+  it('falls back to generic names and the creation time when a profile or message is missing', () => {
+    const [only] = buildConversationSummaries('t', [conversations[0]!], [], {});
+    expect(only).toMatchObject({ otherName: 'مستخدم', studentName: 'طالب', lastMessage: '', lastAt: at(0), unread: 0 });
+  });
+
+  it('orders a thread oldest first and marks which messages are mine', () => {
+    const items = toMessageItems('s', [messages[1]!, messages[0]!]);
+    expect(items.map((m) => m.id)).toEqual(['m1', 'm2']);
+    expect(items.every((m) => m.mine)).toBe(true);
+    expect(toMessageItems('t', messages.slice(0, 2)).every((m) => !m.mine)).toBe(true);
   });
 });

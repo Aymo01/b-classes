@@ -41,3 +41,57 @@ export function conversationLink(role: MessagingRole, conversationId: string) {
   if (role === 'parent') return { to: '/parent', search: { c: conversationId } } as const;
   return { to: '/messages', search: { c: conversationId } } as const;
 }
+
+export type ConversationSummary = {
+  id: string;
+  otherName: string;
+  studentName: string;
+  /** What the other participant is to the student, e.g. «ولي الأمر». */
+  otherRole: MessagingRole;
+  lastMessage: string;
+  lastAt: string;
+  unread: number;
+};
+
+export type MessageItem = { id: string; body: string; mine: boolean; readAt: string | null; createdAt: string };
+
+export type MessageNotification = { id: string; kind: 'message'; title: string; body: string; conversationId: string; readAt: string | null; createdAt: string };
+
+export type MessageRow = { id: string; conversationId: string; senderId: string; body: string; readAt: string | null; createdAt: string };
+
+/** Inbox rows for one viewer: only their own conversations, newest activity first. */
+export function buildConversationSummaries(
+  viewerId: string,
+  conversations: ConversationRecord[],
+  messages: MessageRow[],
+  names: Record<string, string | null | undefined>,
+): ConversationSummary[] {
+  return conversations
+    .filter((c) => isParticipant(c, viewerId))
+    .map((c) => {
+      const thread = messages.filter((m) => m.conversationId === c.id).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+      const last = thread.at(-1);
+      const otherId = viewerId === c.teacherId ? c.participantId : c.teacherId;
+      return {
+        id: c.id,
+        otherName: names[otherId] || 'مستخدم',
+        studentName: names[c.studentId] || 'طالب',
+        otherRole: senderRole(c, otherId)!,
+        lastMessage: last?.body ?? '',
+        lastAt: last?.createdAt ?? c.createdAt,
+        unread: thread.filter((m) => m.senderId !== viewerId && !m.readAt).length,
+      };
+    })
+    .sort((a, b) => b.lastAt.localeCompare(a.lastAt));
+}
+
+export function toMessageItems(viewerId: string, messages: MessageRow[]): MessageItem[] {
+  return [...messages]
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .map((m) => ({ id: m.id, body: m.body, mine: m.senderId === viewerId, readAt: m.readAt, createdAt: m.createdAt }));
+}
+
+export type MessagingPerson = { id: string; name: string };
+
+/** Who the viewer can write to (teachers) and about (students; empty for a student, who writes about themself). */
+export type MessagingTargets = { teachers: MessagingPerson[]; students: MessagingPerson[] };
