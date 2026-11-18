@@ -93,7 +93,7 @@ function ParentPage() {
           <Tabs value={tab ?? (c ? MESSAGES_TAB : 'progress')} onValueChange={(value) => void navigate({ search: { tab: value } })} dir="rtl">
             <TabsList className="teacher-tabs">
               <TabsTrigger value="progress"><BookOpen />التقدّم</TabsTrigger>
-              <TabsTrigger value={MESSAGES_TAB}><MessageSquare />الرسائل<UnreadBadge /></TabsTrigger>
+              <TabsTrigger value={MESSAGES_TAB}><MessageSquare />الرسائل<UnreadBadge studentId={activeChild ?? undefined} /></TabsTrigger>
             </TabsList>
             <TabsContent value="progress">
           {overview ? (

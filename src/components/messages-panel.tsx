@@ -11,8 +11,8 @@ const otherRoleLabel: Record<MessagingRole, string> = { teacher: 'المعلم',
 
 const formatTime = (value: string) => new Date(value).toLocaleString('ar', { dateStyle: 'medium', timeStyle: 'short' });
 
-export function UnreadBadge({ className = 'menu-badge' }: { className?: string }) {
-  const unread = useUnreadMessages();
+export function UnreadBadge({ className = 'menu-badge', studentId }: { className?: string; studentId?: string | undefined }) {
+  const unread = useUnreadMessages(studentId);
   if (unread === 0) return null;
   return <span className={className} aria-label={`${unread} رسائل غير مقروءة`}>{unread}</span>;
 }

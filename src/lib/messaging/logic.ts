@@ -92,6 +92,11 @@ export function buildConversationSummaries(
     .sort((a, b) => b.lastAt.localeCompare(a.lastAt));
 }
 
+/** Unread messages the inbox for one child would show, so a badge matches the list beside it. */
+export function unreadForStudent(conversations: (ConversationSummary & { teacherId: string; studentId: string })[], teachers: MessagingTeacher[], studentId: string): number {
+  return conversationsForStudent(conversations, teachers, studentId).reduce((sum, c) => sum + c.unread, 0);
+}
+
 export function toMessageItems(viewerId: string, messages: MessageRow[]): MessageItem[] {
   return [...messages]
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
